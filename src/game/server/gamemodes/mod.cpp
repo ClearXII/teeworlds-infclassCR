@@ -1142,6 +1142,8 @@ int CGameControllerMOD::ChooseInfectedClass(const CPlayer *pPlayer) const
 	Probability[PLAYERCLASS_FREEZER - START_INFECTEDCLASS - 1] =
 		(Server()->GetClassAvailability(PLAYERCLASS_FREEZER) && nbInfected > 5 && !thereIsAFreezer) ?
 		(double) g_Config.m_InfProbaFreezer : 0.0f;
+	Probability[PLAYERCLASS_REAPER - START_INFECTEDCLASS - 1] =
+		0.0f;
 
 	int Seconds = (Server()->Tick()-m_RoundStartTick)/((float)Server()->TickSpeed());
 	char aBuf[256];
