@@ -1,4 +1,5 @@
 #include <engine/server/mapconverter.h>
+// #include <opus/opus.h>
 #include <game/layers.h>
 
 enum class DDNET_TILE
@@ -58,6 +59,8 @@ DDNET_TILE GetClientGameTileIndex(int PhysicalIndex, DDNET_TILE DDNetIndex, int 
 		case TILE_PHYSICS_NOHOOK:
 			return DDNET_TILE::TILE_NOHOOK;
 		default:
+			if(PhysicalIndex > 128)
+				return (DDNET_TILE) PhysicalIndex;
 			break;
 	}
 
@@ -441,6 +444,7 @@ void CMapConverter::InitState()
 	m_NumGroups = 0;
 	m_NumLayers = 0;
 	m_NumImages = 0;
+	m_NumSounds = 0;
 	m_NumEnvs = 0;
 	m_lEnvPoints.clear();
 }
@@ -448,13 +452,42 @@ void CMapConverter::InitState()
 void CMapConverter::CopyVersion()
 {
 	CMapItemVersion *pItem = (CMapItemVersion *)Map()->FindItem(MAPITEMTYPE_VERSION, 0);
-	m_DataFile.AddItem(MAPITEMTYPE_VERSION, 0, sizeof(CMapItemVersion), pItem);
+	CMapItemVersion Item;
+	Item.m_Version = pItem->m_Version;
+	m_DataFile.AddItem(MAPITEMTYPE_VERSION, 0, sizeof(CMapItemVersion), &Item);
 }
 
 void CMapConverter::CopyMapInfo()
 {
-	CMapItemInfo *pItem = (CMapItemInfo *)Map()->FindItem(MAPITEMTYPE_INFO, 0);
-	m_DataFile.AddItem(MAPITEMTYPE_INFO, 0, sizeof(CMapItemInfo), pItem);
+	CMapItemInfo *pItem = (CMapItemInfo *) Map()->FindItem(MAPITEMTYPE_INFO, 0);
+	CMapItemInfo Item;
+	Item.m_Version = pItem->m_Version;
+	char *pAuthor = (char *) Map()->GetData(pItem->m_Author);
+	char *pVersion = (char *) Map()->GetData(pItem->m_MapVersion);
+	char *pCredits = (char *) Map()->GetData(pItem->m_Credits);
+	char *pLicense = (char *) Map()->GetData(pItem->m_License);
+
+	if(pAuthor && pAuthor[0])
+		Item.m_Author = m_DataFile.AddData(str_length(pAuthor) + 1, pAuthor);
+	else
+		Item.m_Author = -1;
+
+	if(pVersion && pVersion[0])
+		Item.m_MapVersion = m_DataFile.AddData(str_length(pVersion) + 1, pVersion);
+	else
+		Item.m_MapVersion = -1;
+
+	if(pCredits && pCredits[0])
+		Item.m_Credits = m_DataFile.AddData(str_length(pCredits) + 1, pCredits);
+	else
+		Item.m_Credits = -1;
+
+	if(pLicense && pLicense[0])
+		Item.m_License = m_DataFile.AddData(str_length(pLicense) + 1, pLicense);
+	else
+		Item.m_License = -1;
+
+	m_DataFile.AddItem(MAPITEMTYPE_INFO, 0, sizeof(CMapItemInfo), &Item);
 }
 
 void CMapConverter::CopyImages()
@@ -463,7 +496,7 @@ void CMapConverter::CopyImages()
 	Map()->GetType(MAPITEMTYPE_IMAGE, &Start, &Num);
 	for(int i = 0; i < Num; i++)
 	{
-		CMapItemImage *pItem = (CMapItemImage *)Map()->GetItem(Start+i, 0, 0);
+		CMapItemImage *pItem = (CMapItemImage *) Map()->GetItem(Start+i, 0, 0);
 		char *pName = (char *)Map()->GetData(pItem->m_ImageName);
 
 		CMapItemImage ImageItem;
@@ -484,6 +517,30 @@ void CMapConverter::CopyImages()
 		// unload image
 		Map()->UnloadData(pItem->m_ImageData);
 		Map()->UnloadData(pItem->m_ImageName);
+	}
+}
+
+void CMapConverter::CopySounds()
+{
+	int Start, Num;
+	Map()->GetType(MAPITEMTYPE_SOUND, &Start, &Num);
+	for(int i = 0; i < Num; i++)
+	{
+		CMapItemSound *pItem = (CMapItemSound *) Map()->GetItem(Start + i, 0, 0);
+		char *pName = (char *) Map()->GetData(pItem->m_SoundName);
+
+		CMapItemSound SoundItem;
+		SoundItem.m_Version = pItem->m_Version;
+		SoundItem.m_External = pItem->m_External;
+		SoundItem.m_SoundDataSize = Map()->GetDataSize(pItem->m_SoundData);
+		SoundItem.m_SoundName = m_DataFile.AddData(str_length(pName)+1, pName);
+		void *pData = Map()->GetData(pItem->m_SoundData);
+		SoundItem.m_SoundData = m_DataFile.AddData(SoundItem.m_SoundDataSize, pData);
+
+		m_DataFile.AddItem(MAPITEMTYPE_SOUND, m_NumSounds++, sizeof(CMapItemSound), &SoundItem);
+		// unload sound
+		Map()->UnloadData(pItem->m_SoundData);
+		Map()->UnloadData(pItem->m_SoundName);
 	}
 }
 
@@ -646,6 +703,26 @@ void CMapConverter::CopyLayers()
 				m_DataFile.AddItem(MAPITEMTYPE_LAYER, m_NumLayers++, sizeof(LayerItem), &LayerItem);
 
 				Map()->UnloadData(pQuadsItem->m_Data);
+				
+				GroupLayers++;
+			}
+			else if(pLayerItem->m_Type == LAYERTYPE_SOUNDS)
+			{
+				const CMapItemLayerSounds *pSoundsItem = (CMapItemLayerSounds *)pLayerItem;
+				if(pSoundsItem->m_Version < 1 || pSoundsItem->m_Version > 2)
+					continue;
+				
+				CMapItemLayerSounds LayerItem;
+				LayerItem.m_Layer = pSoundsItem->m_Layer;
+				LayerItem.m_Version = pSoundsItem->m_Version;
+				LayerItem.m_NumSources = pSoundsItem->m_NumSources;
+				mem_copy(LayerItem.m_aName, pSoundsItem->m_aName, sizeof(LayerItem.m_aName));
+				LayerItem.m_Sound = pSoundsItem->m_Sound;
+				LayerItem.m_Data = m_DataFile.AddData(sizeof(CSoundSource) * pSoundsItem->m_NumSources, Map()->GetDataSwapped(pSoundsItem->m_Data));
+				
+				m_DataFile.AddItem(MAPITEMTYPE_LAYER, m_NumLayers++, sizeof(LayerItem), &LayerItem);
+
+				Map()->UnloadData(pSoundsItem->m_Data);
 				
 				GroupLayers++;
 			}
@@ -1008,6 +1085,7 @@ bool CMapConverter::CreateMap(const char* pFilename)
 	CopyMapInfo();
 	CopyImages();
 	CopyAnimations();
+	CopySounds();
 	
 	//Game Group
 	{

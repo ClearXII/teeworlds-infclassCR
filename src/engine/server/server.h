@@ -108,6 +108,7 @@ public:
 		enum
 		{
 			STATE_EMPTY = 0,
+			STATE_PREAUTH,
 			STATE_AUTH,
 			STATE_CONNECTING,
 			STATE_READY,
@@ -159,6 +160,7 @@ public:
 		char m_aLanguage[16];
 		int m_WaitingTime;
 		int m_WasInfected;
+		int m_DDNetVersion;
 		
 		bool m_Memory[NUM_CLIENTMEMORIES];
 		IServer::CClientSession m_Session;
@@ -424,6 +426,17 @@ public:
 	virtual int* GetIdMap(int ClientID);
 	virtual void SetCustClt(int ClientID);
 	virtual void SetSolar(int ClientID);
+	/**
+	 * Returns the version of the client with the given client ID.
+	 *
+	 * @param ClientId the client Id, which must be between 0 and
+	 * MAX_CLIENTS - 1, or equal to SERVER_DEMO_CLIENT for server demos.
+	 *
+	 * @return The version of the client with the given client ID.
+	 * For server demos this is always the latest client version.
+	 * On errors, VERSION_NONE is returned.
+	 */
+	virtual int GetClientVersion(int ClientId) const;
 };
 
 #endif

@@ -129,25 +129,19 @@ void CGameControllerMOD::SetFirstInfectedNumber()
 	int NumInfected = GameServer()->GetZombieCount();
 	int NumSpec = GameServer()->GetSpectatorCount();
 	int Players = NumHumans + NumInfected + (g_Config.m_InfIgnoreSpec ? 0 : NumSpec);
-	if(Players < 3)
+	if(Players < 5)
 	{
 		m_NumFirstInfected = 1;
-	}else if(Players < 7)
-	{
-		m_NumFirstInfected = 2;
 	}else if(Players < 12)
 	{
-		m_NumFirstInfected = 3;
+		m_NumFirstInfected = 2;
 	}else if(Players < 24)
 	{
-		m_NumFirstInfected = 4;
+		m_NumFirstInfected = 3;
 	}else if(Players < 32)
 	{
-		m_NumFirstInfected = 5;
-	}else if(Players < 48)
-	{
-		m_NumFirstInfected = 6;
-	}else m_NumFirstInfected = 7;
+		m_NumFirstInfected = 4;
+	}else m_NumFirstInfected = 5;
 }
 
 int CGameControllerMOD::GetFirstInfNb()
@@ -546,6 +540,7 @@ void CGameControllerMOD::Snap(int SnappingClient)
 				case PLAYERCLASS_MERCENARY:
 				case PLAYERCLASS_SNIPER:
 				case PLAYERCLASS_MAGICIAN:
+				case PLAYERCLASS_ARTILLERY:
 					Support++;
 					break;
 				case PLAYERCLASS_ENGINEER:
@@ -642,12 +637,8 @@ void CGameControllerMOD::Snap(int SnappingClient)
 	if(!pGameInfoEx)
 		return;
 
-	pGameInfoEx->m_Flags = GAMEINFOFLAG_PREDICT_VANILLA | GAMEINFOFLAG_DONT_MASK_ENTITIES;
-
-	// We use DDRace entities to show infection and other custom infclass tiles (see CClientGameTileGetter::GetClientGameTileIndex)
-	pGameInfoEx->m_Flags |= GAMEINFOFLAG_ENTITIES_DDNET;
-
-	pGameInfoEx->m_Flags2 = GAMEINFOFLAG2_HUD_HEALTH_ARMOR | GAMEINFOFLAG2_HUD_AMMO | GAMEINFOFLAG2_HUD_DDRACE;
+	pGameInfoEx->m_Flags = GAMEINFOFLAG_PREDICT_VANILLA | GAMEINFOFLAG_DONT_MASK_ENTITIES | GAMEINFOFLAG_GAMETYPE_VANILLA | GAMEINFOFLAG_ENTITIES_DDNET;
+	pGameInfoEx->m_Flags2 = GAMEINFOFLAG2_GAMETYPE_CITY | GAMEINFOFLAG2_HUD_HEALTH_ARMOR | GAMEINFOFLAG2_HUD_AMMO | GAMEINFOFLAG2_HUD_DDRACE;
 	pGameInfoEx->m_Flags2 |= GAMEINFOFLAG2_NO_WEAK_HOOK;
 	pGameInfoEx->m_Flags2 |= GAMEINFOFLAG2_NO_SKIN_CHANGE_FOR_FROZEN;
 	pGameInfoEx->m_Version = GAMEINFO_CURVERSION;
@@ -811,6 +802,9 @@ int CGameControllerMOD::OnCharacterDeath(class CCharacter *pVictim, class CPlaye
 
 	if(Weapon == WEAPON_SELF)
 		pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*3.0f;
+
+	if(pVictim->GetClass() == PLAYERCLASS_REAPER && GameServer()->m_BossRound)
+		EndRound(WINNER_HUMAN);
 		
 	return 0;
 }
@@ -822,6 +816,19 @@ void CGameControllerMOD::OnCharacterSpawn(class CCharacter *pChr)
 
 	// give default weapons
 	pChr->GiveWeapon(WEAPON_HAMMER, -1);
+
+	if(pChr->GetClass() == PLAYERCLASS_REAPER)
+	{
+		pChr->IncreaseHealth(500);
+		CPlayerIterator<PLAYERITER_INGAME> Iter(GameServer()->m_apPlayers);
+		while(Iter.Next())
+		{
+			if(Iter.Player()->GetCharacter() == pChr) continue;
+			Iter.Player()->CameraFollow(pChr->GetPlayer()->GetCID(), 3);
+		}
+		GameServer()->SendBroadcast_Localization(-1, BROADCAST_PRIORITY_GAMEANNOUNCE, BROADCAST_DURATION_GAMEANNOUNCE, _("Gott ist tot"));
+		GameServer()->CreateSoundGlobal(SOUND_CTF_DROP, -1);
+	}
 }
 
 void CGameControllerMOD::OnPlayerInfoChange(class CPlayer *pP)
@@ -922,10 +929,10 @@ bool CGameControllerMOD::PreSpawn(CPlayer* pPlayer, vec2 *pOutPos)
 
 bool CGameControllerMOD::PickupAllowed(int Index)
 {
-	if(Index == TILE_ENTITY_POWERUP_NINJA) return false;
-	else if(Index == TILE_ENTITY_WEAPON_SHOTGUN) return false;
-	else if(Index == TILE_ENTITY_WEAPON_GRENADE) return false;
-	else if(Index == TILE_ENTITY_WEAPON_RIFLE) return false;
+	if(Index == TILE_ENTITY_POWERUP_NINJA) return GameServer()->m_BossRound;
+	else if(Index == TILE_ENTITY_WEAPON_SHOTGUN) return GameServer()->m_BossRound;
+	else if(Index == TILE_ENTITY_WEAPON_GRENADE) return GameServer()->m_BossRound;
+	else if(Index == TILE_ENTITY_WEAPON_RIFLE) return GameServer()->m_BossRound;
 	else return true;
 }
 
@@ -951,6 +958,8 @@ int CGameControllerMOD::ChooseHumanClass(const CPlayer *pPlayer) const
 			case PLAYERCLASS_NINJA:
 			case PLAYERCLASS_MERCENARY:
 			case PLAYERCLASS_SNIPER:
+			case PLAYERCLASS_MAGICIAN:
+			case PLAYERCLASS_ARTILLERY:
 				nbSupport++;
 				break;
 			case PLAYERCLASS_MEDIC:
@@ -1016,6 +1025,9 @@ int CGameControllerMOD::ChooseHumanClass(const CPlayer *pPlayer) const
 	Probability[PLAYERCLASS_ARTILLERY - START_HUMANCLASS - 1] =
 		(nbSupport < g_Config.m_InfSupportLimit && g_Config.m_InfEnableArtillery) ?
 		1.0f : 0.0f;
+	Probability[PLAYERCLASS_MAGICIAN - START_HUMANCLASS - 1] =
+		(nbSupport < g_Config.m_InfSupportLimit && g_Config.m_InfEnableMagician) ?
+		1.0f : 0.0f;
 
 	Probability[PLAYERCLASS_MEDIC - START_HUMANCLASS - 1] =
 		(nbMedic < g_Config.m_InfMedicLimit && g_Config.m_InfEnableMedic) ?
@@ -1027,7 +1039,7 @@ int CGameControllerMOD::ChooseHumanClass(const CPlayer *pPlayer) const
 		(nbDefender < g_Config.m_InfDefenderLimit && g_Config.m_InfEnableLooper) ?
 		1.0f : 0.0f;
 	Probability[PLAYERCLASS_POLICE - START_HUMANCLASS - 1] =
-		(nbDefender < g_Config.m_InfDefenderLimit && g_Config.m_InfEnableLooper) ?
+		(nbDefender < g_Config.m_InfDefenderLimit && g_Config.m_InfEnablePolice) ?
 		1.0f : 0.0f;
 	Probability[PLAYERCLASS_REVIVER - START_HUMANCLASS - 1] =
 		(nbReviver < g_Config.m_InfReviverLimit && g_Config.m_InfEnableReviver) ?
@@ -1042,7 +1054,7 @@ int CGameControllerMOD::ChooseHumanClass(const CPlayer *pPlayer) const
 		{
 			if(pPlayer->m_LastHumanClasses[i] > START_HUMANCLASS && pPlayer->m_LastHumanClasses[i] < END_HUMANCLASS)
 			{
-				Probability[pPlayer->m_LastHumanClasses[i] - 1 - START_HUMANCLASS] = 0.0f;
+				Probability[pPlayer->m_LastHumanClasses[i] - START_HUMANCLASS - 1] = 0.0f;
 			}
 		}
 	}
@@ -1057,6 +1069,7 @@ int CGameControllerMOD::ChooseInfectedClass(const CPlayer *pPlayer) const
 	bool thereIsAWitch = false;
 	bool thereIsAnUndead = false;
 	bool thereIsAFreezer = false;
+	bool thereIsAReaper = false;
 
 	CPlayerIterator<PLAYERITER_INGAME> Iter(GameServer()->m_apPlayers);
 	while(Iter.Next())
@@ -1065,6 +1078,7 @@ int CGameControllerMOD::ChooseInfectedClass(const CPlayer *pPlayer) const
 		if(Iter.Player()->GetClass() == PLAYERCLASS_WITCH) thereIsAWitch = true;
 		if(Iter.Player()->GetClass() == PLAYERCLASS_UNDEAD) thereIsAnUndead = true;
 		if(Iter.Player()->GetClass() == PLAYERCLASS_FREEZER) thereIsAFreezer = true;
+		if(Iter.Player()->GetClass() == PLAYERCLASS_REAPER) thereIsAReaper = true;
 	}
 	
 	if(GameServer()->m_FunRound)
@@ -1078,6 +1092,9 @@ int CGameControllerMOD::ChooseInfectedClass(const CPlayer *pPlayer) const
 		else 
 			return GameServer()->m_FunRoundZombieClass;
 	}
+
+	if(GameServer()->m_BossRound && !thereIsAReaper)
+		return PLAYERCLASS_REAPER;
 
 	double Probability[NB_INFECTEDCLASS];
 	

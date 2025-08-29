@@ -81,6 +81,7 @@ void CGameContext::Construct(int Resetting)
 		m_pVoteOptionHeap = new CHeap();
 
 	m_FunRound = false;
+	m_BossRound = false;
 	m_FunRoundHumanClass = START_HUMANCLASS;
 	m_FunRoundZombieClass = START_INFECTEDCLASS;
 	m_FunRoundsPassed = 0;
@@ -250,6 +251,9 @@ const char *CGameContext::GetClassName(int Class)
 		break;
 	case PLAYERCLASS_NIGHTMARE:
 		return ("Nightmare");
+		break;
+	case PLAYERCLASS_REAPER:
+		return ("Reaper");
 		break;
 	default:
 		return ("Unknown class");
@@ -592,6 +596,21 @@ void CGameContext::CreateSoundGlobal(int Sound, int Target)
 	}
 }
 
+void CGameContext::CreateMapSoundGlobal(int Sound, int Target)
+{
+	CNetMsg_Sv_MapSoundGlobal Msg;
+	Msg.m_SoundId = Sound;
+	if (Target == -2)
+		Server()->SendPackMsg(&Msg, MSGFLAG_NOSEND, -1);
+	else
+	{
+		int Flag = MSGFLAG_VITAL;
+		if (Target != -1)
+			Flag |= MSGFLAG_NORECORD;
+		Server()->SendPackMsg(&Msg, Flag, Target);
+	}
+}
+
 void CGameContext::SendChatTarget(int To, const char *pText)
 {
 	CNetMsg_Sv_Chat Msg;
@@ -854,6 +873,8 @@ void CGameContext::SendBroadcast_ClassIntro(int ClientID, int Class)
 
 	if (Class < END_HUMANCLASS)
 		SendBroadcast_Localization(ClientID, BROADCAST_PRIORITY_GAMEANNOUNCE, BROADCAST_DURATION_GAMEANNOUNCE, _("You are a human: {str:ClassName}"), "ClassName", pClassName, NULL);
+	else if(Class == PLAYERCLASS_REAPER)
+		SendBroadcast_Localization(ClientID, BROADCAST_PRIORITY_GAMEANNOUNCE, BROADCAST_DURATION_GAMEANNOUNCE, _("You are the god of the world"));
 	else
 		SendBroadcast_Localization(ClientID, BROADCAST_PRIORITY_GAMEANNOUNCE, BROADCAST_DURATION_GAMEANNOUNCE, _("You are an infected: {str:ClassName}"), "ClassName", pClassName, NULL);
 }
@@ -2048,6 +2069,12 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 		else if (MsgID == NETMSGTYPE_CL_SETSPECTATORMODE && !m_World.m_Paused)
 		{
 			CNetMsg_Cl_SetSpectatorMode *pMsg = (CNetMsg_Cl_SetSpectatorMode *)pRawMsg;
+			// player is firing
+			if(pPlayer->GetTeam() != TEAM_SPECTATORS && pPlayer->IsCameraOn())
+			{
+				pPlayer->m_SpecFire = true;
+				return;
+			}
 
 			if (pPlayer->GetTeam() != TEAM_SPECTATORS || pPlayer->m_SpectatorID == pMsg->m_SpectatorID || ClientID == pMsg->m_SpectatorID ||
 				(g_Config.m_SvSpamprotection && pPlayer->m_LastSetSpectatorMode && pPlayer->m_LastSetSpectatorMode + Server()->TickSpeed() * 3 > Server()->Tick()))
@@ -2880,13 +2907,33 @@ bool CGameContext::ConStartFunRound(IConsole::IResult *pResult, void *pUserData)
 	return true;
 }
 
+bool CGameContext::ConStartBossRound(IConsole::IResult *pResult, void *pUserData)
+{
+	CGameContext *pSelf = (CGameContext *)pUserData;
+	char aBuf[256];
+
+	if (pSelf->m_FunRound)
+	{
+		str_format(aBuf, sizeof(aBuf), "Boss round is not over yet");
+		pSelf->SendChatTarget(-1, aBuf);
+		return true;
+	}
+
+	pSelf->StartBossRound();
+    return false;
+}
+
 void CGameContext::StartFunRound()
 {
 	m_FunRoundHumanClass = START_HUMANCLASS + random_int(1, NB_HUMANCLASS);
-	m_FunRoundZombieClass = START_INFECTEDCLASS + random_int(1, NB_INFECTEDCLASS);
-
+	do
+	{
+		m_FunRoundZombieClass = START_INFECTEDCLASS + random_int(1, NB_INFECTEDCLASS);
+	}
+	while (m_FunRoundZombieClass == PLAYERCLASS_REAPER);
+	
 	SendChatTarget_Localization(-1, CHATCATEGORY_SCORE,
-								_("Funround are start! Zombies are {str:Zombie}. Humans are {str:Human}"),
+								_("Funround was started! Zombies are {str:Zombie}. Humans are {str:Human}"),
 								"Zombie", GetClassName(m_FunRoundZombieClass),
 								"Human", GetClassName(m_FunRoundHumanClass), NULL);
 
@@ -2902,6 +2949,19 @@ void CGameContext::EndFunRound()
 {
 	m_FunRound = false;
 	m_FunRoundsPassed++;
+}
+
+void CGameContext::StartBossRound()
+{
+	m_BossRound = true;
+	m_pController->StartRound();
+	
+	return;
+}
+
+void CGameContext::EndBossRound()
+{
+	m_BossRound = false;
 }
 
 bool CGameContext::ConchainSpecialMotdupdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData)
@@ -2997,6 +3057,8 @@ bool CGameContext::ConSetClass(IConsole::IResult *pResult, void *pUserData)
 		pPlayer->SetClass(PLAYERCLASS_FREEZER);
 	else if (str_comp(pClassName, "nightmare") == 0)
 		pPlayer->SetClass(PLAYERCLASS_NIGHTMARE);
+	else if (str_comp(pClassName, "reaper") == 0)
+		pPlayer->SetClass(PLAYERCLASS_REAPER);
 	else if (str_comp(pClassName, "none") == 0)
 	{
 		pPlayer->SetClass(PLAYERCLASS_NONE);
@@ -4301,6 +4363,7 @@ void CGameContext::OnConsoleInit()
 	Console()->Register("clear_votes", "", CFGFLAG_SERVER, ConClearVotes, this, "Clears the voting options");
 	Console()->Register("vote", "r", CFGFLAG_SERVER, ConVote, this, "Force a vote to yes/no");
 	Console()->Register("start_fun_round", "", CFGFLAG_SERVER, ConStartFunRound, this, "Start fun round");
+	Console()->Register("start_boss_round", "", CFGFLAG_SERVER, ConStartBossRound, this, "Start boss round");
 	Console()->Register("tele", "?ii", CFGFLAG_SERVER, ConTeleport, this, "Tele to client id player");
 
 	/* INFECTION MODIFICATION START ***************************************/
@@ -4394,6 +4457,22 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 					vec2 Pivot(fx2f(pQuads[q].m_aPoints[4].x), fx2f(pQuads[q].m_aPoints[4].y));
 					m_pController->OnEntity(aLayerName, Pivot, P0, P1, P2, P3, pQuads[q].m_PosEnv);
 				}
+			}
+		}
+	}
+	CMapItemLayerTilemap *pTileMap = m_Layers.PhysicsLayer();
+	CTile *pTiles = (CTile *)Kernel()->RequestInterface<IMap>()->GetData(pTileMap->m_Data);
+
+	for(int y = 0; y < pTileMap->m_Height; y++)
+	{
+		for(int x = 0; x < pTileMap->m_Width; x++)
+		{
+			int Index = pTiles[y*pTileMap->m_Width+x].m_Index;
+
+			if(Index >= ENTITY_OFFSET)
+			{
+				vec2 Pos(x*32.0f+16.0f, y*32.0f+16.0f);
+				m_pController->OnEntity("twEntity", Pos, Pos, Pos, Pos, Pos, Index - ENTITY_OFFSET);
 			}
 		}
 	}
@@ -4683,4 +4762,9 @@ void CGameContext::OnUpdatePlayerServerInfo(CJsonStringWriter *pJSonWriter, int 
 
 	pJSonWriter->WriteAttribute("team");
 	pJSonWriter->WriteIntValue(m_apPlayers[Id]->GetTeam());
+}
+
+int CGameContext::GetClientVersion(int ClientId) const
+{
+	return Server()->GetClientVersion(ClientId);
 }

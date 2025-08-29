@@ -245,6 +245,7 @@ function build(settings)
 		end
 		server_settings.link.libs:Add("ssl")
 		server_settings.link.libs:Add("curl")
+		-- server_settings.link.libs:Add("opus")
 		server_settings.link.libs:Add("crypto")
 
 	elseif family == "windows" then

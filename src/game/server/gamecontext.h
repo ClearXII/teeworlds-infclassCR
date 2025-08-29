@@ -106,6 +106,7 @@ class CGameContext : public IGameServer
 	static bool ConClearVotes(IConsole::IResult *pResult, void *pUserData);
 	static bool ConVote(IConsole::IResult *pResult, void *pUserData);
 	static bool ConStartFunRound(IConsole::IResult *pResult, void *pUserData);
+	static bool ConStartBossRound(IConsole::IResult *pResult, void *pUserData);
 	static bool ConchainSpecialMotdupdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	static bool ConTeleport(IConsole::IResult *pResult, void *pUserData);
 
@@ -167,6 +168,9 @@ public:
 	void StartFunRound();
 	void EndFunRound();
 	bool m_FunRound;
+	void StartBossRound();
+	void EndBossRound();
+	bool m_BossRound;
 	int m_FunRoundHumanClass;
 	int m_FunRoundZombieClass;
 	int m_FunRoundsPassed;
@@ -207,6 +211,7 @@ public:
 	void CreateDeath(vec2 Pos, int Who);
 	void CreateSound(vec2 Pos, int Sound, int64_t Mask=-1);
 	void CreateSoundGlobal(int Sound, int Target=-1);
+	void CreateMapSoundGlobal(int Sound, int Target=-1);
 
 	enum
 	{
@@ -381,6 +386,7 @@ public:
 	// InfClassR end
 	void InitGeolocation();
 	void OnUpdatePlayerServerInfo(class CJsonStringWriter *pJSonWriter, int Id) override;
+	int GetClientVersion(int ClientId) const;
 };
 
 inline int64_t CmaskAll() { return -1LL; }

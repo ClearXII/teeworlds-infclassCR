@@ -52,7 +52,10 @@ void CPlasmaPlus::Tick()
 		float MinDistance = 2400.0f, MinDistancePlayer = -1;
 		for(CCharacter *p = (CCharacter*) GameWorld()->FindFirst(CGameWorld::ENTTYPE_CHARACTER); p; p = (CCharacter *)p->TypeNext())
 		{
-			if(p->IsHuman())continue;
+			if(GameServer()->GetPlayerChar(m_Owner))
+				if(p->IsHuman() == GameServer()->GetPlayerChar(m_Owner)->IsHuman()) continue;
+			else
+				if(p->IsHuman()) continue;
 
 			float Len = distance(p->m_Pos, m_Pos);
 			if(Len < p->m_ProximityRadius + g_Config.m_InfPlasmaPlusRange)

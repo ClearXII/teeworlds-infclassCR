@@ -384,6 +384,17 @@ public:
 	virtual void SetSolar(int ClientID) = 0;
 
 	virtual void ExpireServerInfo() = 0;
+	/**
+	 * Returns the version of the client with the given client ID.
+	 *
+	 * @param ClientId the client Id, which must be between 0 and
+	 * MAX_CLIENTS - 1, or equal to SERVER_DEMO_CLIENT for server demos.
+	 *
+	 * @return The version of the client with the given client ID.
+	 * For server demos this is always the latest client version.
+	 * On errors, VERSION_NONE is returned.
+	 */
+	virtual int GetClientVersion(int ClientId) const = 0;
 };
 
 class IGameServer : public IInterface

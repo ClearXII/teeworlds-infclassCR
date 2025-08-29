@@ -5,6 +5,7 @@
 
 #include <game/generated/protocol.h>
 
+#include "entities/pickup.h"
 #include "gamecontroller.h"
 #include "gamecontext.h"
 
@@ -73,6 +74,45 @@ bool IGameController::OnEntity(const char* pName, vec2 Pivot, vec2 P0, vec2 P1, 
 		m_SpawnPoints[0].add(Pos);
 	else if(str_comp(pName, "icHuman") == 0)
 		m_SpawnPoints[1].add(Pos);
+	else if(str_comp(pName, "twEntity") == 0)
+	{
+		int Index = PosEnv;
+		int Type = -1;
+		int SubType = 0;
+		if(Index == TILE_ENTITY_ARMOR)
+			Type = POWERUP_ARMOR;
+		else if(Index == TILE_ENTITY_HEALTH)
+			Type = POWERUP_HEALTH;
+		else if(Index == TILE_ENTITY_WEAPON_SHOTGUN)
+		{
+			Type = POWERUP_WEAPON;
+			SubType = WEAPON_SHOTGUN;
+		}
+		else if(Index == TILE_ENTITY_WEAPON_GRENADE)
+		{
+			Type = POWERUP_WEAPON;
+			SubType = WEAPON_GRENADE;
+		}
+		else if(Index == TILE_ENTITY_WEAPON_RIFLE)
+		{
+			Type = POWERUP_WEAPON;
+			SubType = WEAPON_RIFLE;
+		}
+	/* INFECTION MODIFICATION START ***************************************/
+		else if(Index == TILE_ENTITY_POWERUP_NINJA)
+		{
+			Type = POWERUP_NINJA;
+			SubType = WEAPON_NINJA;
+		}
+	/* INFECTION MODIFICATION END *****************************************/
+
+		if(Type != -1)
+		{
+			CPickup *pPickup = new CPickup(&GameServer()->m_World, Type, SubType);
+			pPickup->m_Pos = Pivot;
+			return true;
+		}
+	}
 	
 	return false;
 }
@@ -93,6 +133,10 @@ void IGameController::EndRound(int Winner)
 	if(GameServer()->m_FunRound)
 	{
 		GameServer()->EndFunRound();
+	}
+	if(GameServer()->m_BossRound)
+	{
+		GameServer()->EndBossRound();
 	}
 	m_GameOverTick = Server()->Tick();
 	m_SuddenDeath = 0;
@@ -151,7 +195,9 @@ void IGameController::StartRound()
 
 	Server()->OnRoundStart();
 	GameServer()->OnStartRound();
-	
+
+	if(GameServer()->m_BossRound)
+		m_RoundCount = g_Config.m_SvRoundsPerMap;
 /* INFECTION MODIFICATION START ***************************************/
 	for(int i = 0; i < MAX_CLIENTS; i++)
 	{

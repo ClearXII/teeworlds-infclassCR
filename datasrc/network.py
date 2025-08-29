@@ -339,6 +339,14 @@ Objects = [
 		NetIntAny("m_Layer"),
 		NetIntAny("m_EntityClass"),
 	]),
+
+	NetObjectEx("DDNetSpectatorInfo", "spectator-info@netobj.ddnet.org", [
+		NetBool("m_HasCameraInfo"),
+		NetIntRange("m_Zoom", 0, 'max_int'),
+		NetIntRange("m_Deadzone", 0, 'max_int'),
+		NetIntRange("m_FollowFactor", 0, 'max_int'),
+		NetIntRange("m_SpectatorCount", 0, 'MAX_CLIENTS-1', default=0),
+	]),
 ]
 
 Messages = [
@@ -512,5 +520,9 @@ Messages = [
 	NetMessageEx("Sv_Record", "record@netmsg.ddnet.tw", [
 		NetIntAny("m_ServerTimeBest"),
 		NetIntAny("m_PlayerTimeBest"),
+	]),
+
+	NetMessageEx("Sv_MapSoundGlobal", "map-sound-global@netmsg.ddnet.org", [
+		NetIntAny("m_SoundId"),
 	]),
 ]

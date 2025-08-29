@@ -667,6 +667,8 @@ void CCharacter::FireWeapon()
 
 	if(GetClass() == PLAYERCLASS_SLUG && m_ActiveWeapon == WEAPON_HAMMER)
 		FullAuto = true;
+	if(GetClass() == PLAYERCLASS_REAPER && m_ActiveWeapon == WEAPON_HAMMER)
+		FullAuto = true;
 	
 	// check if we gonna fire
 	bool WillFire = false;
@@ -738,7 +740,7 @@ void CCharacter::FireWeapon()
 		case WEAPON_HAMMER:
 		{
 /* INFECTION MODIFICATION START ***************************************/
-			if(GetClass() == PLAYERCLASS_ENGINEER)
+			if(GetClass() == PLAYERCLASS_ENGINEER && !GameServer()->m_BossRound)
 			{
 				for(CEngineerWall *pWall = (CEngineerWall*) GameWorld()->FindFirst(CGameWorld::ENTTYPE_ENGINEER_WALL); pWall; pWall = (CEngineerWall*) pWall->TypeNext())
 				{
@@ -926,7 +928,7 @@ void CCharacter::FireWeapon()
 					m_ReloadTimer = Server()->TickSpeed()/2;
 				}
 			}
-			else if(GetClass() == PLAYERCLASS_SCIOGIST && !GameServer()->m_FunRound)
+			else if(GetClass() == PLAYERCLASS_SCIOGIST && !GameServer()->m_FunRound && !GameServer()->m_BossRound)
 			{
 				bool NoSkip = true;
 				if(m_HasAntiAirMine)
@@ -1081,9 +1083,22 @@ void CCharacter::FireWeapon()
 				int Hits = 0;
 				bool ShowAttackAnimation = false;
 				
+				if(GetClass() == PLAYERCLASS_REAPER)
+				{
+					float MaxSpeed = GameServer()->Tuning()->m_GroundControlSpeed*2.f;
+					vec2 Recoil = Direction * GameServer()->Tuning()->m_GroundControlAccel;
+					m_Core.m_Vel.x = SaturatedAdd(-MaxSpeed, MaxSpeed, m_Core.m_Vel.x, (float) Recoil.x);
+					m_Core.m_Vel.y = SaturatedAdd(-MaxSpeed, MaxSpeed, m_Core.m_Vel.y, (float) Recoil.y);
+				}
+				
 				// make sure that the slug will not auto-fire to attack
 				if(!AutoFire)
 				{
+					if(GetClass() == PLAYERCLASS_REAPER)
+					{
+						new CPlasmaPlus(GameWorld(), ProjStartPos, m_pPlayer->GetCID(), Direction, true, false);
+					}
+
 					ShowAttackAnimation = true;
 					
 					m_NumObjectsHit = 0;
@@ -1154,6 +1169,11 @@ void CCharacter::FireWeapon()
 							else if(GetClass() == PLAYERCLASS_SLIME)
 							{
 								pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, g_Config.m_InfSlimeDamage,
+									m_pPlayer->GetCID(), m_ActiveWeapon, TAKEDAMAGEMODE_NOINFECTION);
+							}
+							else if(GetClass() == PLAYERCLASS_REAPER)
+							{
+								pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, 30,
 									m_pPlayer->GetCID(), m_ActiveWeapon, TAKEDAMAGEMODE_NOINFECTION);
 							}
 							else if(GameServer()->m_pController->IsInfectionStarted())
@@ -1938,7 +1958,12 @@ void CCharacter::HandleWeapons()
 	else if(GetClass() == PLAYERCLASS_NIGHTMARE)
 	{
 		m_HookDamage = g_Config.m_InfNightmareHookDamage;
-	}else m_HookDamage = 1;
+	}
+	else if(GetClass() == PLAYERCLASS_REAPER)
+	{
+		m_HookDamage = 3;
+	}
+	else m_HookDamage = 1;
 
 	// check reload timer
 	if(m_ReloadTimer)
@@ -1997,6 +2022,10 @@ void CCharacter::HandleWeapons()
 				if(GetClass() == PLAYERCLASS_SMOKER)
 				{
 					Rate = 0.5f;
+				}
+				else if(GetClass() == PLAYERCLASS_REAPER)
+				{
+					Rate = 2.f;
 				}
 				else if(GetClass() == PLAYERCLASS_FREEZER && VictimChar->IsHuman())
 				{
@@ -2117,7 +2146,7 @@ void CCharacter::ResetInput()
 		m_Input.m_Fire++;
 	m_Input.m_Fire &= INPUT_STATE_MASK;
 	m_Input.m_Jump = 0;
-	m_LatestPrevInput = m_LatestInput = m_Input;
+	m_LatestPrevInput = m_LatestInput = m_PrevInput = m_Input;
 }
 
 void CCharacter::Tick()
@@ -2820,7 +2849,7 @@ void CCharacter::Tick()
 				GameServer()->SendBroadcast_Localization(m_pPlayer->GetCID(), BROADCAST_PRIORITY_INTERFACE, BROADCAST_DURATION_REALTIME, _("Choose your class"), NULL);
 			}
 			
-			if(m_Input.m_Fire&1 && m_pPlayer->m_MapMenuItem >= 0)
+			if(m_LatestInput.m_Fire&1 && m_pPlayer->m_MapMenuItem >= 0)
 			{
 				bool Bonus = false;
 				
@@ -3402,7 +3431,7 @@ void CCharacter::TickDefered()
 	}
 
 	int Events = m_Core.m_TriggeredEvents;
-	int Mask = CmaskAllExceptOne(m_pPlayer->GetCID());
+	int64_t Mask = m_pPlayer->IsCameraOn() ? CmaskAll() : CmaskAllExceptOne(m_pPlayer->GetCID());
 
 
 	if(Events&COREEVENT_HOOK_ATTACH_PLAYER) GameServer()->CreateSound(m_Pos, SOUND_HOOK_ATTACH_PLAYER, CmaskAll());
@@ -3412,7 +3441,7 @@ void CCharacter::TickDefered()
 		if(Events&COREEVENT_HOOK_ATTACH_GROUND) GameServer()->CreateSound(m_Pos, SOUND_HOOK_ATTACH_GROUND, Mask);
 		if(Events&COREEVENT_HOOK_HIT_NOHOOK) GameServer()->CreateSound(m_Pos, SOUND_HOOK_NOATTACH, Mask);
 	}
-
+	if(Events&COREEVENT_AIR_JUMP && m_pPlayer->IsCameraOn()) GameServer()->CreateSound(m_Pos, SOUND_PLAYER_JUMP, CmaskOne(m_pPlayer->GetCID()));
 
 	if(m_pPlayer->GetTeam() == TEAM_SPECTATORS)
 	{
@@ -3458,7 +3487,7 @@ void CCharacter::TickPaused()
 
 bool CCharacter::IncreaseHealth(int Amount)
 {
-	if(m_Health >= 10)
+	if(m_Health >= 10 || GetClass() == PLAYERCLASS_REAPER)
 		return false;
 	m_Health = clamp(m_Health+Amount, 0, 10);
 	return true;
@@ -3466,7 +3495,7 @@ bool CCharacter::IncreaseHealth(int Amount)
 
 bool CCharacter::IncreaseArmor(int Amount)
 {
-	if(m_Armor >= 10)
+	if(m_Armor >= 10 || GetClass() == PLAYERCLASS_REAPER)
 		return false;
 	m_Armor = clamp(m_Armor+Amount, 0, 10);
 	return true;
@@ -3652,6 +3681,8 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon, int Mode)
 	{
 		Dmg = Dmg/2;
 	}
+	if(GetClass() == PLAYERCLASS_REAPER)
+		Force *= 1.5f;
 
 	if(Mode == TAKEDAMAGEMODE_ALL)
 	{
@@ -3943,7 +3974,7 @@ void CCharacter::Snap(int SnappingClient)
 	if(SnappingClient > -1 && !Server()->Translate(id, SnappingClient))
 		return;
 
-	if(IsDontSnapEntity(SnappingClient) && SnappingClient != id)
+	if(IsDontSnapEntity(SnappingClient) && SnappingClient != m_pPlayer->GetCID())
 		return;
 	
 	CPlayer* pClient = GameServer()->m_apPlayers[SnappingClient];
@@ -4283,7 +4314,7 @@ void CCharacter::Snap(int SnappingClient)
 	if(m_pPlayer->GetCID() == SnappingClient || SnappingClient == -1 ||
 		(!g_Config.m_SvStrictSpectateMode && m_pPlayer->GetCID() == GameServer()->m_apPlayers[SnappingClient]->m_SpectatorID))
 	{
-		pCharacter->m_Health = m_Health;
+		pCharacter->m_Health = GetClass() == PLAYERCLASS_REAPER ? round_to_int(ceil(m_Health / 50)) : m_Health;
 		pCharacter->m_Armor = m_Armor;
 		if(m_aWeapons[m_ActiveWeapon].m_Ammo > 0)
 			pCharacter->m_AmmoCount = m_aWeapons[m_ActiveWeapon].m_Ammo;
@@ -4872,6 +4903,22 @@ void CCharacter::ClassSpawnAttributes()
 				m_pPlayer->m_knownClass[PLAYERCLASS_NIGHTMARE] = true;
 			}
 			break;
+		case PLAYERCLASS_REAPER:
+			m_Health = 500;
+			m_Armor = 0;
+			RemoveAllGun();
+			m_aWeapons[WEAPON_HAMMER].m_Got = true;
+			GiveWeapon(WEAPON_HAMMER, -1);
+			m_ActiveWeapon = WEAPON_HAMMER;
+			vec2 SpawnPos;
+			GameServer()->m_pController->PreSpawn(m_pPlayer, &SpawnPos);
+			GameServer()->CreatePlayerSpawn(m_Pos);
+			GameServer()->m_pController->OnCharacterSpawn(this);
+			GameServer()->Teleport(this, SpawnPos);
+			GameServer()->CreatePlayerSpawn(m_Pos);
+			
+			GameServer()->SendBroadcast_ClassIntro(m_pPlayer->GetCID(), PLAYERCLASS_REAPER);
+			break;
 	}
 }
 
@@ -5095,6 +5142,12 @@ void CCharacter::Freeze(float Time, int Player, int Reason)
 		GameServer()->CreateSound(m_Pos, SOUND_PLAYER_PAIN_SHORT);
 		GameServer()->CreatePlayerSpawn(m_Pos);
 	}
+
+	if(GetClass() == PLAYERCLASS_REAPER)
+		Time /= 2;
+	if(Time == 0)
+		return;
+
 	m_IsFrozen = true;
 	m_FrozenTime = Server()->TickSpeed()*Time;
 	m_FreezeReason = Reason;

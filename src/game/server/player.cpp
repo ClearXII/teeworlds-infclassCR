@@ -62,6 +62,7 @@ CPlayer::CPlayer(CGameContext *pGameServer, int ClientID, int Team)
 		m_LastHumanClasses[i] = -1;
 
 	m_VoodooIsSpirit = false;
+	m_CameraFollow = SPEC_FREEVIEW;
 /* INFECTION MODIFICATION END *****************************************/
 }
 
@@ -114,7 +115,8 @@ void CPlayer::Tick()
 		{
 			if(m_pCharacter->IsAlive())
 			{
-				m_ViewPos = m_pCharacter->m_Pos;
+				if(!IsCameraOn())
+					m_ViewPos = m_pCharacter->m_Pos;
 			}
 			else
 			{
@@ -176,6 +178,24 @@ void CPlayer::PostTick()
 	// update view pos for spectators
 	if(m_Team == TEAM_SPECTATORS && m_SpectatorID != SPEC_FREEVIEW && GameServer()->m_apPlayers[m_SpectatorID])
 		m_ViewPos = GameServer()->m_apPlayers[m_SpectatorID]->m_ViewPos;
+
+	if(IsCameraOn())
+	{
+		if(m_CameraFollow != -1 && GameServer()->m_apPlayers[m_CameraFollow])
+		{
+			m_ViewPos = GameServer()->m_apPlayers[m_CameraFollow]->m_ViewPos;
+		}
+		
+		static const float s_MoveSpeed = 48.0f;
+		if(distance(m_ViewPos, m_CameraTo) < s_MoveSpeed)
+		{
+			m_ViewPos = m_CameraTo;
+		}
+		else
+		{
+			m_ViewPos += normalize(m_CameraTo - m_ViewPos) * s_MoveSpeed;
+		}
+	}
 }
 
 void CPlayer::HandleTuningParams()
@@ -507,6 +527,10 @@ void CPlayer::Snap(int SnappingClient)
 				m_TeeInfos.m_ColorFeet = 65414;
 			}
 			break;
+		case PLAYERCLASS_REAPER:
+			m_TeeInfos.m_UseCustomColor = 0;
+			str_copy(m_TeeInfos.m_aSkinName, "reaper", sizeof(m_TeeInfos.m_aSkinName));
+			break;
 		default:
 			m_TeeInfos.m_UseCustomColor = 0;
 			str_copy(m_TeeInfos.m_aSkinName, "default", sizeof(m_TeeInfos.m_aSkinName));
@@ -540,21 +564,44 @@ void CPlayer::Snap(int SnappingClient)
 /* INFECTION MODIFICATION START ***************************************/
 	pPlayerInfo->m_Score = PlayerInfoScore;
 /* INFECTION MODIFICATION END *****************************************/
-	pPlayerInfo->m_Team = m_Team;
+	int SnappingClientVersion = GameServer()->GetClientVersion(SnappingClient);
+	if(SnappingClientVersion < VERSION_DDNET_INDEPENDENT_SPECTATORS_TEAM)
+		pPlayerInfo->m_Team = ((m_ClientID == SnappingClient) && IsCameraOn()) ? TEAM_SPECTATORS : m_Team;
+	else
+		pPlayerInfo->m_Team = m_Team;
 
 	if(m_ClientID == SnappingClient)
 		pPlayerInfo->m_Local = 1;
 
-	if(m_ClientID == SnappingClient && m_Team == TEAM_SPECTATORS)
+	if(m_ClientID == SnappingClient && (m_Team == TEAM_SPECTATORS || IsCameraOn()))
 	{
-		CNetObj_SpectatorInfo *pSpectatorInfo = static_cast<CNetObj_SpectatorInfo *>(Server()->SnapNewItem(NETOBJTYPE_SPECTATORINFO, m_ClientID, sizeof(CNetObj_SpectatorInfo)));
+		CNetObj_SpectatorInfo *pSpectatorInfo = static_cast<CNetObj_SpectatorInfo *>(Server()->SnapNewItem(NETOBJTYPE_SPECTATORINFO, id, sizeof(CNetObj_SpectatorInfo)));
 		if(!pSpectatorInfo)
 			return;
 
-		pSpectatorInfo->m_SpectatorID = m_SpectatorID;
+		pSpectatorInfo->m_SpectatorID = IsCameraOn() ? (m_CameraFollow == -1 ? m_ClientID : m_CameraFollow) : m_SpectatorID;
 		pSpectatorInfo->m_X = m_ViewPos.x;
 		pSpectatorInfo->m_Y = m_ViewPos.y;
+
+		CNetObj_DDNetSpectatorInfo *pDDNetInfo = static_cast<CNetObj_DDNetSpectatorInfo *>(Server()->SnapNewItem(NETOBJTYPE_DDNETSPECTATORINFO, id, sizeof(CNetObj_DDNetSpectatorInfo)));
+		if(!pDDNetInfo)
+			return;
+
+		pDDNetInfo->m_HasCameraInfo = 0;
+		pDDNetInfo->m_Zoom = 1000;
+		pDDNetInfo->m_Deadzone = 800;
+		pDDNetInfo->m_FollowFactor = 0;
 	}
+	CNetObj_DDNetPlayer *pDDNetPlayer = static_cast<CNetObj_DDNetPlayer *>(Server()->SnapNewItem(NETOBJTYPE_DDNETPLAYER, id, sizeof(CNetObj_DDNetPlayer)));
+	if(!pDDNetPlayer)
+		return;
+
+	if(SnappingClient >= 0 && Server()->IsAuthed(m_ClientID))
+		pDDNetPlayer->m_AuthLevel =	AUTHED_HELPER;
+	else
+		pDDNetPlayer->m_AuthLevel = AUTHED_NO;
+
+	pDDNetPlayer->m_Flags = IsCameraOn() ? EXPLAYERFLAG_SPEC : 0;
 }
 
 void CPlayer::FakeSnap(int SnappingClient)
@@ -622,6 +669,13 @@ void CPlayer::OnDirectInput(CNetObj_PlayerInput *NewInput)
 
 		m_PlayerFlags = NewInput->m_PlayerFlags;
  		return;
+	}
+
+	if(m_SpecFire)
+	{
+		NewInput->m_Fire++;
+		NewInput->m_Fire &= INPUT_STATE_MASK;
+		m_SpecFire = false;
 	}
 
 	m_PlayerFlags = NewInput->m_PlayerFlags;
@@ -930,5 +984,25 @@ void CPlayer::IncreaseGhoulLevel(int Diff)
 void CPlayer::SetToSpirit(bool IsSpirit)
 {
 	m_VoodooIsSpirit = IsSpirit;
+}
+
+void CPlayer::CameraMoveTo(vec2 To, int Time)
+{
+	m_CameraTo = To;
+	m_CameraFollow = SPEC_FREEVIEW;
+	m_LastCameraFocusTick = Server()->Tick();
+	m_CameraFocusTime = Time * Server()->TickSpeed();
+}
+
+void CPlayer::CameraFollow(int Follow, int Time)
+{
+	m_CameraFollow = Follow;
+	m_LastCameraFocusTick = Server()->Tick();
+	m_CameraFocusTime = Time * Server()->TickSpeed();
+}
+
+bool CPlayer::IsCameraOn()
+{
+    return m_LastCameraFocusTick + m_CameraFocusTime >= Server()->Tick();
 }
 /* INFECTION MODIFICATION END *****************************************/

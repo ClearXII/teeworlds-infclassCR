@@ -130,6 +130,10 @@ private:
 
 	bool m_VoodooIsSpirit;
 
+	int m_LastCameraFocusTick;
+	int m_CameraFocusTime;
+	int m_CameraFollow;
+	vec2 m_CameraTo;
 public:
 	int m_Authed;
 	int m_ScoreRound;
@@ -184,6 +188,11 @@ public:
 
 	void SetToSpirit(bool IsSpirit);
 
+	void CameraMoveTo(vec2 To, int Time);
+	void CameraFollow(int Follow, int Time);
+	bool IsCameraOn();
+
+	bool m_SpecFire;
 /* INFECTION MODIFICATION END *****************************************/
 };
 
