@@ -565,6 +565,12 @@ void CCharacter::UpdateTuningParam()
 		}
 	}
 	
+	if(GetClass() == PLAYERCLASS_REAPER)
+	{
+		pTuningParams->m_HookFireSpeed = 1.0f;
+		pTuningParams->m_HookLength = 1.0f;
+	}
+
 	if(m_HookMode == 1)
 	{
 		pTuningParams->m_HookDragSpeed = 0.0f;
@@ -1094,11 +1100,6 @@ void CCharacter::FireWeapon()
 				// make sure that the slug will not auto-fire to attack
 				if(!AutoFire)
 				{
-					if(GetClass() == PLAYERCLASS_REAPER)
-					{
-						new CPlasmaPlus(GameWorld(), ProjStartPos, m_pPlayer->GetCID(), Direction, true, false);
-					}
-
 					ShowAttackAnimation = true;
 					
 					m_NumObjectsHit = 0;
@@ -2193,7 +2194,7 @@ void CCharacter::Tick()
 		}
 		m_Core.m_HookState = HOOK_IDLE;
 	}
-	
+
 	if(m_MagicTick)
 	{
 		m_MagicTick--;
@@ -3428,6 +3429,13 @@ void CCharacter::TickDefered()
 			StartPosX.u, StartPosY.u,
 			StartVelX.u, StartVelY.u);
 		GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
+	}
+
+	if(m_Core.m_TriggeredEvents & COREEVENT_HOOK_LAUNCH && GetClass() == PLAYERCLASS_REAPER)
+	{
+		GameServer()->Teleport(this, m_Pos + vec2(m_Input.m_TargetX, m_Input.m_TargetY));
+		m_Core.m_HookState = HOOK_RETRACT_END;
+		m_Core.m_HookPos = m_Pos;
 	}
 
 	int Events = m_Core.m_TriggeredEvents;
