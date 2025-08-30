@@ -276,7 +276,7 @@ int Geolocation::get_iso_numeric_code(GeoLite2PP::MStr& m) {
 		{"SE", 752},
 		{"CH", 756},
 		{"SY", 760},
-		{"TW", 158},
+		{"TW", 156},
 		{"TJ", 762},
 		{"TZ", 834},
 		{"TH", 764},
