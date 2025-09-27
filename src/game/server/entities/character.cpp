@@ -3694,7 +3694,7 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon, int Mode)
 
 	if(Mode == TAKEDAMAGEMODE_ALL)
 	{
-		if(pKillerChar->IsZombie() == IsZombie())
+		if(pKillerChar && (pKillerChar->IsZombie() == IsZombie()))
 		{
 			Dmg = max(1,Dmg/2);	
 		}
