@@ -148,8 +148,8 @@ m_pConsole(pConsole)
 	m_ResetKillsTime = 0;
 	m_FunnelState = CDoctorFunnel::STATE_NO;
 	m_PowerBattery = g_Config.m_InfDoctorMaxPowerBattery;
-
-	/* INFECTION MODIFICATION END *****************************************/
+	
+/* INFECTION MODIFICATION END *****************************************/
 }
 
 bool CCharacter::
@@ -564,7 +564,7 @@ void CCharacter::UpdateTuningParam()
 			if (diff < 1.0f) m_Core.m_Vel *= diff;
 		}
 	}
-	
+		
 	if(GetClass() == PLAYERCLASS_REAPER)
 	{
 		pTuningParams->m_HookFireSpeed = 1.0f;
@@ -674,7 +674,7 @@ void CCharacter::FireWeapon()
 	if(GetClass() == PLAYERCLASS_SLUG && m_ActiveWeapon == WEAPON_HAMMER)
 		FullAuto = true;
 	if(GetClass() == PLAYERCLASS_REAPER && m_ActiveWeapon == WEAPON_HAMMER)
-		FullAuto = true;
+	FullAuto = true;
 	
 	// check if we gonna fire
 	bool WillFire = false;
@@ -703,7 +703,7 @@ void CCharacter::FireWeapon()
 		}
 		return;
 	}
-	if(GetInfWeaponID(m_ActiveWeapon) == INFWEAPON_BIOLOGIST_RIFLE && m_aWeapons[m_ActiveWeapon].m_Ammo < 10)
+	if(GetInfWeaponID(m_ActiveWeapon) == INFWEAPON_BIOLOGIST_RIFLE && m_aWeapons[m_ActiveWeapon].m_Ammo < g_Config.m_InfBiologistMineAmmo)
 	{
 		// 125ms is a magical limit of how fast a human can click
 		m_ReloadTimer = 125 * Server()->TickSpeed() / 1000;
@@ -715,7 +715,7 @@ void CCharacter::FireWeapon()
 		return;
 	}
 
-	if(GetInfWeaponID(m_ActiveWeapon) == INFWEAPON_CATAPULT_RIFLE && m_aWeapons[m_ActiveWeapon].m_Ammo < 10)
+	if(GetInfWeaponID(m_ActiveWeapon) == INFWEAPON_CATAPULT_RIFLE && m_aWeapons[m_ActiveWeapon].m_Ammo < g_Config.m_InfCatapultElasticEntityAmmo)
 	{
 		// 125ms is a magical limit of how fast a human can click
 		m_ReloadTimer = 125 * Server()->TickSpeed() / 1000;
@@ -1055,7 +1055,7 @@ void CCharacter::FireWeapon()
 					}
 				}
 			}
-			else if (GetClass() == PLAYERCLASS_DOCTOR)
+						else if (GetClass() == PLAYERCLASS_DOCTOR)
 			{
 				if (m_FunnelState == CDoctorFunnel::STATE_NO)
 				{
@@ -1088,7 +1088,7 @@ void CCharacter::FireWeapon()
 				// reset objects Hit
 				int Hits = 0;
 				bool ShowAttackAnimation = false;
-				
+								
 				if(GetClass() == PLAYERCLASS_REAPER)
 				{
 					float MaxSpeed = GameServer()->Tuning()->m_GroundControlSpeed*2.f;
@@ -1096,7 +1096,7 @@ void CCharacter::FireWeapon()
 					m_Core.m_Vel.x = SaturatedAdd(-MaxSpeed, MaxSpeed, m_Core.m_Vel.x, (float) Recoil.x);
 					m_Core.m_Vel.y = SaturatedAdd(-MaxSpeed, MaxSpeed, m_Core.m_Vel.y, (float) Recoil.y);
 				}
-				
+
 				// make sure that the slug will not auto-fire to attack
 				if(!AutoFire)
 				{
@@ -1172,7 +1172,7 @@ void CCharacter::FireWeapon()
 								pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, g_Config.m_InfSlimeDamage,
 									m_pPlayer->GetCID(), m_ActiveWeapon, TAKEDAMAGEMODE_NOINFECTION);
 							}
-							else if(GetClass() == PLAYERCLASS_REAPER)
+														else if(GetClass() == PLAYERCLASS_REAPER)
 							{
 								pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, 30,
 									m_pPlayer->GetCID(), m_ActiveWeapon, TAKEDAMAGEMODE_NOINFECTION);
@@ -1408,7 +1408,7 @@ void CCharacter::FireWeapon()
 		} break;
 
 		case WEAPON_SHOTGUN:
-		if (GetClass() == PLAYERCLASS_DOCTOR)
+				if (GetClass() == PLAYERCLASS_DOCTOR)
 		{
 			GameServer()->CreateSound(m_Pos, SOUND_RIFLE_BOUNCE);
 			GameServer()->CreateSound(m_Pos, SOUND_WEAPON_SWITCH);
@@ -1617,7 +1617,7 @@ void CCharacter::FireWeapon()
 			{
 				new CArtilleryProjectile(GameWorld(), m_pPlayer->GetCID(), m_Pos, Direction, Server()->TickSpeed() * 2, WEAPON_GRENADE);
 				GameServer()->CreateSound(m_Pos, SOUND_GRENADE_FIRE);
-			}
+			}	
 			else if(GetClass() == PLAYERCLASS_DOCTOR)
 			{
 				new CDoctorGrenade(GameWorld(), m_pPlayer->GetCID(), ProjStartPos, Direction);
@@ -1682,7 +1682,7 @@ void CCharacter::FireWeapon()
 				{
 					new CBiologistMine(GameWorld(), m_Pos, To, m_pPlayer->GetCID());
 					GameServer()->CreateSound(m_Pos, SOUND_RIFLE_FIRE);
-					m_aWeapons[WEAPON_RIFLE].m_Ammo = 0;
+					m_aWeapons[WEAPON_RIFLE].m_Ammo -= g_Config.m_InfBiologistMineAmmo;
 				}
 				else
 					return;
@@ -1691,7 +1691,7 @@ void CCharacter::FireWeapon()
 			{
 				new CElasticEntity(GameWorld(), m_Pos, Direction, m_pPlayer->GetCID());
 				GameServer()->CreateSound(m_Pos, SOUND_RIFLE_FIRE);
-				m_aWeapons[WEAPON_RIFLE].m_Ammo = 0;
+				m_aWeapons[WEAPON_RIFLE].m_Ammo -= g_Config.m_InfCatapultElasticEntityAmmo;
 			}
 			else
 			{
@@ -2194,7 +2194,7 @@ void CCharacter::Tick()
 		}
 		m_Core.m_HookState = HOOK_IDLE;
 	}
-
+	
 	if(m_MagicTick)
 	{
 		m_MagicTick--;
@@ -3689,12 +3689,12 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon, int Mode)
 	{
 		Dmg = Dmg/2;
 	}
-	if(GetClass() == PLAYERCLASS_REAPER)
+		if(GetClass() == PLAYERCLASS_REAPER)
 		Force *= 1.5f;
 
 	if(Mode == TAKEDAMAGEMODE_ALL)
 	{
-		if(pKillerChar && (pKillerChar->IsZombie() == IsZombie()))
+if(pKillerChar && (pKillerChar->IsZombie() == IsZombie()))
 		{
 			Dmg = max(1,Dmg/2);	
 		}
@@ -3761,7 +3761,7 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon, int Mode)
 		// A zombie can't infect a hero
 		Mode = TAKEDAMAGEMODE_NOINFECTION;
 	}
-
+	
 	if(GetClass() == PLAYERCLASS_DOCTOR  && Mode == TAKEDAMAGEMODE_INFECTION)
 	{
 		Dmg = 10;
@@ -3982,7 +3982,7 @@ void CCharacter::Snap(int SnappingClient)
 	if(SnappingClient > -1 && !Server()->Translate(id, SnappingClient))
 		return;
 
-	if(IsDontSnapEntity(SnappingClient) && SnappingClient != m_pPlayer->GetCID())
+if(IsDontSnapEntity(SnappingClient) && SnappingClient != m_pPlayer->GetCID())
 		return;
 	
 	CPlayer* pClient = GameServer()->m_apPlayers[SnappingClient];
@@ -4674,8 +4674,8 @@ void CCharacter::ClassSpawnAttributes()
 				GameServer()->SendChatTarget_Localization(m_pPlayer->GetCID(), CHATCATEGORY_DEFAULT, _("Type “/help {str:ClassName}” for more information about your class"), "ClassName", "artillery", NULL);
 				m_pPlayer->m_knownClass[PLAYERCLASS_ARTILLERY] = true;
 			}
-			break;
-		case PLAYERCLASS_DOCTOR:
+			break;	
+			case PLAYERCLASS_DOCTOR:
 			RemoveAllGun();
 			m_pPlayer->m_InfectionTick = -1;
 			m_Health = 20;
@@ -4911,7 +4911,7 @@ void CCharacter::ClassSpawnAttributes()
 				m_pPlayer->m_knownClass[PLAYERCLASS_NIGHTMARE] = true;
 			}
 			break;
-		case PLAYERCLASS_REAPER:
+			case PLAYERCLASS_REAPER:
 			m_Health = 500;
 			m_Armor = 0;
 			RemoveAllGun();
@@ -5150,7 +5150,7 @@ void CCharacter::Freeze(float Time, int Player, int Reason)
 		GameServer()->CreateSound(m_Pos, SOUND_PLAYER_PAIN_SHORT);
 		GameServer()->CreatePlayerSpawn(m_Pos);
 	}
-
+	
 	if(GetClass() == PLAYERCLASS_REAPER)
 		Time /= 2;
 	if(Time == 0)

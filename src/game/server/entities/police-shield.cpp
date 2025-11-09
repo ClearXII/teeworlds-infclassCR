@@ -20,7 +20,7 @@ CPoliceShield::CPoliceShield(CGameWorld *pGameWorld, vec2 Pos, vec2 Pos2, int Ow
 	}
 	else m_Pos2 = Pos2;
 	m_Owner = Owner;
-	m_Health = 50;
+	m_Health = g_Config.m_InfPoliceShieldHealth;
 	GameWorld()->InsertEntity(this);
 
 	m_EndPointID = Server()->SnapNewID();

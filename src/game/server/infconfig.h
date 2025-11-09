@@ -215,4 +215,9 @@ MACRO_CONFIG_INT(InfStunGrenadeProbability, inf_stun_grenade_probability, 30, 0,
 MACRO_CONFIG_INT(InfFreezeMineMinimalKills, inf_freeze_mine_minimal_kills, 3, 0, 30, CFGFLAG_SERVER, "Minimal number of kills before grenade stun ammunition can be found")
 
 MACRO_CONFIG_INT(InfIgnoreSpec, inf_ignore_spec, 1, 0, 1, CFGFLAG_SERVER, "Ignore spectator number when set first infection (not count as infected)")
+MACRO_CONFIG_INT(InfBiologistMineAmmo, inf_biologist_mine_ammo, 10, 0, 10, CFGFLAG_SERVER, "deduct ammo for biologist mine")
+MACRO_CONFIG_INT(InfCatapultElasticEntityAmmo, inf_catapult_elastic_entity_ammo, 10, 0, 10, CFGFLAG_SERVER, "deduct ammo for catapult elastic entity ammo")
+MACRO_CONFIG_INT(InfMedicDamageOnRevive, inf_medic_revive_dmg, 17, 0, 20, CFGFLAG_SERVER, "medic self damage for revive a zombie")
+MACRO_CONFIG_INT(InfMedicReviveMinZombie, inf_medic_revive_min_zombie, 5, 0, 10, CFGFLAG_SERVER, "min zombie need for medic can revive")
+MACRO_CONFIG_INT(InfPoliceShieldHealth, inf_police_shield_health, 50, 0, 1000, CFGFLAG_SERVER, "the health of police shield")
 #endif
