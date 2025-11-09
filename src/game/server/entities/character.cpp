@@ -625,6 +625,15 @@ void CCharacter::UpdateTuningParam()
 		pTuningParams->m_HookDragSpeed = pTuningParams->m_HookDragSpeed * (1.0f + 0.5f*Factor);
 	}
 
+	if(GetClass() == PLAYERCLASS_HUNTER)
+	{
+		float Factor = g_Config.m_InfHunterSpeed * 0.01f;
+		pTuningParams->m_GroundControlSpeed = pTuningParams->m_GroundControlSpeed * (1.0f + Factor);
+		pTuningParams->m_GroundControlAccel = pTuningParams->m_GroundControlAccel * (1.0f + Factor);
+		pTuningParams->m_AirControlSpeed = pTuningParams->m_AirControlSpeed * (1.0f + Factor);
+		pTuningParams->m_AirControlAccel = pTuningParams->m_AirControlAccel * (1.0f + Factor);
+	}
+
 	if(GetClass() == PLAYERCLASS_MAGICIAN && m_IsMagic)
 	{
 		float Factor = 0.75f;
@@ -3637,7 +3646,7 @@ void CCharacter::Die(int Killer, int Weapon)
 	if(GetClass() == PLAYERCLASS_BOOMER && !IsFrozen() && Weapon != WEAPON_GAME && !(IsInLove() && Weapon == WEAPON_SELF) )
 	{
 		GameServer()->CreateSound(m_Pos, SOUND_GRENADE_EXPLODE);
-		GameServer()->CreateExplosionDisk(m_Pos, 80.0f, 107.5f, 14, 52.0f, m_pPlayer->GetCID(), WEAPON_HAMMER, TAKEDAMAGEMODE_INFECTION);
+		GameServer()->CreateExplosionDisk(m_Pos, 80.0f, g_Config.m_InfBoomerExplodeRadius, 14, 52.0f, m_pPlayer->GetCID(), WEAPON_HAMMER, TAKEDAMAGEMODE_INFECTION);
 	}
 	
 	if(GetClass() == PLAYERCLASS_WITCH)
@@ -4822,7 +4831,7 @@ void CCharacter::ClassSpawnAttributes()
 			}
 			break;
 		case PLAYERCLASS_SLUG:
-			m_Health = 10;
+			m_Health = g_Config.m_InfSlugHealth;
 			m_Armor = 0;
 			RemoveAllGun();
 			m_aWeapons[WEAPON_HAMMER].m_Got = true;
