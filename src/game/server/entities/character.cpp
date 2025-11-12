@@ -630,8 +630,12 @@ void CCharacter::UpdateTuningParam()
 		float Factor = g_Config.m_InfHunterSpeed * 0.01f;
 		pTuningParams->m_GroundControlSpeed = pTuningParams->m_GroundControlSpeed * (1.0f + Factor);
 		pTuningParams->m_GroundControlAccel = pTuningParams->m_GroundControlAccel * (1.0f + Factor);
+		pTuningParams->m_GroundJumpImpulse = pTuningParams->m_GroundJumpImpulse * (1.0f + Factor);
+		pTuningParams->m_AirJumpImpulse = pTuningParams->m_AirJumpImpulse * (1.0f + Factor);
 		pTuningParams->m_AirControlSpeed = pTuningParams->m_AirControlSpeed * (1.0f + Factor);
 		pTuningParams->m_AirControlAccel = pTuningParams->m_AirControlAccel * (1.0f + Factor);
+		pTuningParams->m_HookDragAccel = pTuningParams->m_HookDragAccel * (1.0f + Factor);
+		pTuningParams->m_HookDragSpeed = pTuningParams->m_HookDragSpeed * (1.0f + Factor);
 	}
 
 	if(GetClass() == PLAYERCLASS_MAGICIAN && m_IsMagic)
@@ -3552,7 +3556,7 @@ void CCharacter::Die(int Killer, int Weapon)
 /* INFECTION MODIFICATION START ***************************************/
 	if(GetClass() == PLAYERCLASS_UNDEAD && Killer != m_pPlayer->GetCID())
 	{
-		Freeze(10.0, Killer, FREEZEREASON_UNDEAD);
+		Freeze(g_Config.m_InfUndeadFreeze, Killer, FREEZEREASON_UNDEAD);
 		return;
 	}
 	

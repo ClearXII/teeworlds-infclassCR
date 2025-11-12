@@ -223,4 +223,5 @@ MACRO_CONFIG_INT(InfPoliceShieldHealth, inf_police_shield_health, 50, 0, 1000, C
 MACRO_CONFIG_INT(InfBoomerExplodeRadius, inf_boomer_explode_radius, 80, 0, 8000, CFGFLAG_SERVER, "the radius of boomer explode")
 MACRO_CONFIG_INT(InfSlugHealth, inf_Slug_health, 10, 0, 1000, CFGFLAG_SERVER, "the health of slug")
 MACRO_CONFIG_INT(InfHunterSpeed, inf_hunter_speed, 0, 0, 114514, CFGFLAG_SERVER, "the speed increase of hunter")//指的是比默认快多少%
+MACRO_CONFIG_INT(InfUndeadFreeze, inf_undead_freeze, 0, 0, 100, CFGFLAG_SERVER, "the freeze time of undead")
 #endif
