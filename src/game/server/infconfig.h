@@ -225,4 +225,6 @@ MACRO_CONFIG_INT(InfSlugHealth, inf_Slug_health, 10, 0, 10000, CFGFLAG_SERVER, "
 MACRO_CONFIG_INT(InfHunterSpeed, inf_hunter_speed, 0, 0, 1000, CFGFLAG_SERVER, "the speed increase of hunter")//指的是比默认快多少%
 MACRO_CONFIG_INT(InfUndeadFreeze, inf_undead_freeze, 0, 0, 100, CFGFLAG_SERVER, "the freeze time of undead")
 MACRO_CONFIG_INT(InfWitchResistance, inf_witch_resistance, 0, 0, 100, CFGFLAG_SERVER, "the damage resistance of witch")
+MACRO_CONFIG_INT(InfNightmareEffectTime, inf_nightmare_effect_time, 30, 0, 9000, CFGFLAG_SERVER, "the blinding time of nightmare appear(10 = 1s)")
+MACRO_CONFIG_INT(InfNightmareAppearDamage, inf_nightmare_appear_damage, 2, 0, 100, CFGFLAG_SERVER, "the damage of nightmare appear")
 #endif

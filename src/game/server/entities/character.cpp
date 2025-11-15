@@ -2532,8 +2532,8 @@ void CCharacter::Tick()
 						float Len = distance(p->m_Pos, m_Pos);
 						if(Len < m_ProximityRadius + pTuningParams->m_HookLength)
 						{
-							p->NightmareEffect(30);
-							p->TakeDamage(vec2(0.0f, 0.0f), 2, m_pPlayer->GetCID(), WEAPON_NINJA, TAKEDAMAGEMODE_NOINFECTION);
+							p->NightmareEffect(g_Config.m_InfNightmareEffectTime);
+							p->TakeDamage(vec2(0.0f, 0.0f), g_Config.m_InfNightmareAppearDamage, m_pPlayer->GetCID(), WEAPON_NINJA, TAKEDAMAGEMODE_NOINFECTION);
 						}
 					}
 				}
