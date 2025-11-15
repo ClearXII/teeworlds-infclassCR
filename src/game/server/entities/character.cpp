@@ -3698,6 +3698,11 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon, int Mode)
 	if (pKillerPlayer)
 		pKillerChar = pKillerPlayer->GetCharacter();
 
+	if(GetClass() == PLAYERCLASS_WITCH)
+	{
+		float Factor = g_Config.m_InfWitchResistance * 0.01f;
+		Dmg = Dmg * (1.0f - Factor);
+	}
 	if(GetClass() == PLAYERCLASS_FREEZER)
 	{
 		Dmg = Dmg/2;

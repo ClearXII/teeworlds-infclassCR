@@ -219,9 +219,10 @@ MACRO_CONFIG_INT(InfBiologistMineAmmo, inf_biologist_mine_ammo, 10, 0, 10, CFGFL
 MACRO_CONFIG_INT(InfCatapultElasticEntityAmmo, inf_catapult_elastic_entity_ammo, 10, 0, 10, CFGFLAG_SERVER, "deduct ammo for catapult elastic entity ammo")
 MACRO_CONFIG_INT(InfMedicDamageOnRevive, inf_medic_revive_dmg, 17, 0, 20, CFGFLAG_SERVER, "medic self damage for revive a zombie")
 MACRO_CONFIG_INT(InfMedicReviveMinZombie, inf_medic_revive_min_zombie, 5, 0, 10, CFGFLAG_SERVER, "min zombie need for medic can revive")
-MACRO_CONFIG_INT(InfPoliceShieldHealth, inf_police_shield_health, 50, 0, 1000, CFGFLAG_SERVER, "the health of police shield")
+MACRO_CONFIG_INT(InfPoliceShieldHealth, inf_police_shield_health, 50, 0, 10000, CFGFLAG_SERVER, "the health of police shield")
 MACRO_CONFIG_INT(InfBoomerExplodeRadius, inf_boomer_explode_radius, 80, 0, 8000, CFGFLAG_SERVER, "the radius of boomer explode")
-MACRO_CONFIG_INT(InfSlugHealth, inf_Slug_health, 10, 0, 1000, CFGFLAG_SERVER, "the health of slug")
-MACRO_CONFIG_INT(InfHunterSpeed, inf_hunter_speed, 0, 0, 114514, CFGFLAG_SERVER, "the speed increase of hunter")//指的是比默认快多少%
+MACRO_CONFIG_INT(InfSlugHealth, inf_Slug_health, 10, 0, 10000, CFGFLAG_SERVER, "the health of slug")
+MACRO_CONFIG_INT(InfHunterSpeed, inf_hunter_speed, 0, 0, 1000, CFGFLAG_SERVER, "the speed increase of hunter")//指的是比默认快多少%
 MACRO_CONFIG_INT(InfUndeadFreeze, inf_undead_freeze, 0, 0, 100, CFGFLAG_SERVER, "the freeze time of undead")
+MACRO_CONFIG_INT(InfWitchResistance, inf_witch_resistance, 0, 0, 100, CFGFLAG_SERVER, "the damage resistance of witch")
 #endif
