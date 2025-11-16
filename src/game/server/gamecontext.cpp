@@ -4333,6 +4333,73 @@ bool CGameContext::ConWitch(IConsole::IResult *pResult, void *pUserData)
 	return true;
 }
 
+bool CGameContext::ConSetWeaponAttribute(IConsole::IResult *pResult, void *pUserData)
+{
+	enum
+	{
+		FIRE_DELAY, // 0
+		AMMO_REGEN_TIME, // 1
+		MAX_AMMO, // 2
+		NUM_OPERATIONS,
+	};
+
+	CGameContext *pSelf = (CGameContext *)pUserData;
+	if(pResult->NumArguments() < 2)
+	{
+		return false;
+	}
+
+	int WeaponID = pResult->GetInteger(0);
+	int OperationType = pResult->GetInteger(1);
+
+	if(WeaponID < INFWEAPON_NONE || WeaponID >= NB_INFWEAPON)
+	{
+		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "consetweaponattribute", "Invalid weaponid");
+		return false;
+	}
+	if(OperationType < FIRE_DELAY || OperationType >= NUM_OPERATIONS)
+	{
+		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "consetweaponattribute", "Invalid operaions (1 = fire deley, 2 = ammo regen time, 3 = max ammo)");
+		return false;
+	}
+
+	if(pResult->NumArguments() == 3)
+	{
+		int Value = pResult->GetInteger(2);
+
+		if(OperationType == FIRE_DELAY)
+		{
+			pSelf->Server()->SetFireDelay(WeaponID, Value);
+			return true;
+		}
+		else if(OperationType == AMMO_REGEN_TIME)
+		{
+			pSelf->Server()->SetAmmoRegenTime(WeaponID, Value);
+			return true;
+		}
+		else if(OperationType == MAX_AMMO)
+		{
+			pSelf->Server()->SetMaxAmmo(WeaponID, Value);
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	else
+	{
+		char aBuf[128];
+		str_format(aBuf, sizeof(aBuf), "weaponid = %d, type = %d, value = %d", WeaponID, OperationType,
+				OperationType == FIRE_DELAY ? pSelf->Server()->GetFireDelay(WeaponID) :
+				(OperationType == AMMO_REGEN_TIME ? pSelf->Server()->GetAmmoRegenTime(WeaponID) :
+				(pSelf->Server()->GetMaxAmmo(WeaponID))));
+		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "consetweaponattribute", aBuf);
+		return true;
+	}
+	return false;
+}
+
 /* INFECTION MODIFICATION END *****************************************/
 
 void CGameContext::OnConsoleInit()
@@ -4378,6 +4445,8 @@ void CGameContext::OnConsoleInit()
 	Console()->Register("language", "s<en|fr|nl|de|bg|sr-Latn|hr|cs|pl|uk|ru|el|la|it|es|pt|hu|ar|tr|sah|fa|tl|zh-Hans|ja>", CFGFLAG_CHAT | CFGFLAG_USER, ConLanguage, this, "Display information about the mod");
 	Console()->Register("cmdlist", "", CFGFLAG_CHAT | CFGFLAG_USER, ConCmdList, this, "List of commands");
 	Console()->Register("witch", "", CFGFLAG_CHAT | CFGFLAG_USER, ConWitch, this, "Call Witch");
+
+	Console()->Register("inf_set_weapon_attribute", "i<id> i<operation> ?i<value>", CFGFLAG_SERVER, ConSetWeaponAttribute, this, "Analogous to 'Say' but sent to a single client only");
 	/* INFECTION MODIFICATION END *****************************************/
 
 	Console()->Chain("sv_motd", ConchainSpecialMotdupdate, this);
