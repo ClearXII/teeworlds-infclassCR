@@ -84,6 +84,7 @@ MACRO_CONFIG_INT(InfProbaSlug, inf_proba_slug, 7, 0, 100, CFGFLAG_SERVER, "Proba
 MACRO_CONFIG_INT(InfProbaVoodoo, inf_proba_voodoo, 6, 0, 100, CFGFLAG_SERVER, "Probability for an infected to be a voodoo")
 MACRO_CONFIG_INT(InfProbaSlime, inf_proba_slime, 5, 0, 100, CFGFLAG_SERVER, "Probability for an infected to be a slime")
 MACRO_CONFIG_INT(InfProbaWitch, inf_proba_witch, 5, 0, 100, CFGFLAG_SERVER, "Probability for an infected to be a witch")
+MACRO_CONFIG_INT(InfProbaZage, inf_proba_zage, 2, 0, 100, CFGFLAG_SERVER, "Probability for an infected to be a zage")
 MACRO_CONFIG_INT(InfProbaFreezer, inf_proba_freezer, 5, 0, 100, CFGFLAG_SERVER, "Probability for an infected to be a freezer")
 MACRO_CONFIG_INT(InfProbaUndead, inf_proba_undead, 6, 0, 100, CFGFLAG_SERVER, "Probability for an infected to be an undead")
 MACRO_CONFIG_INT(InfProbaNightmare, inf_proba_nightmare, 2, 0, 100, CFGFLAG_SERVER, "Probability for an infected to be a nightmare")
@@ -120,10 +121,13 @@ MACRO_CONFIG_INT(FunRoundGhoulStomachSize, funround_ghoul_stomach_size, 40, 0, 1
 MACRO_CONFIG_INT(FunRoundUndeadProba, funround_undead_proba, 6, 0, 100, CFGFLAG_SERVER, "Fun round undead proba")
 MACRO_CONFIG_INT(FunRoundWitchProba, funround_witch_proba, 5, 0, 100, CFGFLAG_SERVER, "Fun round witch proba")
 MACRO_CONFIG_INT(FunRoundFreezerProba, funround_freezer_proba, 5, 0, 100, CFGFLAG_SERVER, "Fun round freezer proba")
+MACRO_CONFIG_INT(FunRoundZageProba, funround_zage_proba, 2, 0, 100, CFGFLAG_SERVER, "Fun round zage proba")
 MACRO_CONFIG_INT(FunRoundProba, funround_proba, 6, 0, 1000, CFGFLAG_SERVER, "Fun round proba(‰)")
 // class config
 MACRO_CONFIG_INT(InfFreezerReslowlyTime, inf_freezer_reslowly_time, 200, 0, 1000, CFGFLAG_SERVER, "tick")
 MACRO_CONFIG_INT(InfMagicianMagicTick, inf_magician_magic_tick, 250, 0, 1000, CFGFLAG_SERVER, "tick")
+
+MACRO_CONFIG_INT(InfDisguiseTimer, inf_disguise_time, 30, 10, 1000, CFGFLAG_SERVER, "Zage disguise time in seconds")
 
 //weapon config
 MACRO_CONFIG_INT(InfElasticEntityRadius, inf_elastic_entity_radius, 46, 0, 200, CFGFLAG_SERVER, "Radius of elastic entitys")

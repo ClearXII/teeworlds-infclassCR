@@ -193,6 +193,11 @@ public:
 	bool IsCameraOn();
 
 	bool m_SpecFire;
+
+	// for zage
+	int m_FakeTarget;
+	void Disguise(int TargetID);
+	void BreakDisguise();
 /* INFECTION MODIFICATION END *****************************************/
 };
 

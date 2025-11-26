@@ -620,8 +620,7 @@ void CMapConverter::CopyGameLayer()
 
 			const DDNET_TILE Tile = GetClientGameTileIndex(PhysicalIndex, DDNetIndex, icDamageIndex, icTeleIndex, icBonusIndex);
 			m_pTiles[j*m_Width+i].m_Index = static_cast<int>(Tile);
-
-			i += m_pPhysicsLayerTiles[j*m_Width+i].m_Skip;
+			m_pTiles[j*m_Width+i].m_Skip = 0;
 		}
 	}
 	
@@ -667,13 +666,9 @@ void CMapConverter::CopyLayers()
 					CopyGameLayer();
 					GroupLayers++;
 				}
-				else if(pTilemapItem->m_Flags&TILESLAYERFLAG_ZONE)
+				else if(pTilemapItem->m_Flags&TILESLAYERFLAG_ZONE || pTilemapItem->m_Flags&TILESLAYERFLAG_ENTITY)
 				{
-					
-				}
-				else if(pTilemapItem->m_Flags&TILESLAYERFLAG_ENTITY)
-				{
-					
+					continue;
 				}
 				else
 				{
@@ -784,7 +779,7 @@ void CMapConverter::Finalize()
 			Item.m_OffsetX = 0;
 			Item.m_OffsetY = 0;
 			Item.m_StartLayer = m_NumLayers;
-			Item.m_NumLayers = NUM_MENUCLASS+1; // not sure why +1 tho
+			Item.m_NumLayers = NUM_MENUCLASS+1; // +1 for quads background
 			Item.m_UseClipping = 0;
 			Item.m_ClipX = 0;
 			Item.m_ClipY = 0;

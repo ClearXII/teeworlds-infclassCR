@@ -1094,5 +1094,33 @@
 	{
 		"key": "You are the god of the world",
 		"value": "你是这世界的神"
+	},
+	{
+		"key": "You have killed a zage, +3 points",
+		"value": "你杀死了一个智骸, +3分"
+	},
+	{
+		"key": "You need to give the target",
+		"value": "你需要提供目标"
+	},
+	{
+		"key": "Couldn't find this target",
+		"value": "无法找到该目标"
+	},
+	{
+		"key": "You can't do this",
+		"value": "你不能这么做"
+	},
+	{
+		"key": "Zage",
+		"value": "智骸"
+	},
+	{
+		"key": "You are disguising: {sec:EffectDuration}",
+		"value": "你在伪装,剩余时间: {sec:EffectDuration}"
+	},
+	{
+		"key": "That's a zombie...",
+		"value": "那是僵尸..."
 	}
 ]}

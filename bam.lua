@@ -7,7 +7,6 @@ config:Add(OptTestCompileC("stackprotector", "int main(){return 0;}", "-fstack-p
 config:Add(OptTestCompileC("minmacosxsdk", "int main(){return 0;}", "-mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk"))
 config:Add(OptTestCompileC("macosxppc", "int main(){return 0;}", "-arch ppc"))
 config:Add(OptLibrary("zlib", "zlib.h", false))
-config:Add(OptToggle("geolocation", true))
 config:Finalize("config.lua")
 
 -- data compiler
@@ -195,10 +194,6 @@ function build(settings)
 			settings.cc.flags:Add("`pkg-config --cflags icu-uc icu-i18n`")
 			settings.link.flags:Add("`pkg-config --libs icu-uc icu-i18n`")
 		end
-		
-		if config.geolocation.value then
-			settings.link.libs:Add("maxminddb")  -- for ip geolocation
-		end
 
 		if platform == "solaris" then
 		    settings.link.flags:Add("-lsocket")
@@ -277,11 +272,6 @@ function build(settings)
 
 	game_shared = Compile(settings, Collect("src/game/*.cpp"), nethash, network_source)
 	game_server = Compile(settings, CollectRecursive("src/game/server/*.cpp"), server_content_source)
-	infclasscr = {}
-	if config.geolocation.value then
-		infclasscr = Compile(settings, Collect("src/infclasscr/*.cpp", "src/infclasscr/GeoLite2PP/*.cpp"))
-	end
-
 
 	server_osxlaunch = {}
 	if platform == "macosx" then
@@ -290,7 +280,7 @@ function build(settings)
 
 	-- build server
 	server_exe = Link(server_settings, "server", engine, server,
-		game_shared, game_server, infclasscr, teeuniverses, zlib, server_link_other, md5, json)
+		game_shared, game_server, teeuniverses, zlib, server_link_other, md5, json)
 
 	serverlaunch = {}
 	if platform == "macosx" then
@@ -319,11 +309,6 @@ release_settings.config_ext = ""
 release_settings.debug = 0
 release_settings.optimize = 1
 release_settings.cc.defines:Add("CONF_RELEASE")
-
-if config.geolocation.value then
-	debug_settings.cc.defines:Add("CONF_GEOLOCATION")
-	release_settings.cc.defines:Add("CONF_GEOLOCATION")
-end
 
 if platform == "macosx" then
 	debug_settings_ppc = debug_settings:Copy()

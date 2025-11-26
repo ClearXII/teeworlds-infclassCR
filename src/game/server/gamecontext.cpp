@@ -18,10 +18,6 @@
 #include "gamemodes/mod.h"
 #include <algorithm>
 
-#ifdef CONF_GEOLOCATION
-#include <infclasscr/geolocation.h>
-#endif
-
 #include <engine/shared/json.h>
 
 enum
@@ -109,12 +105,6 @@ CGameContext::~CGameContext()
 	if (!m_Resetting)
 		delete m_pVoteOptionHeap;
 
-#ifdef CONF_GEOLOCATION
-	if (!m_Resetting)
-	{
-		Geolocation::Shutdown();
-	}
-#endif
 }
 
 void CGameContext::Clear()
@@ -254,6 +244,9 @@ const char *CGameContext::GetClassName(int Class)
 		break;
 	case PLAYERCLASS_REAPER:
 		return ("Reaper");
+		break;
+	case PLAYERCLASS_ZAGE:
+		return ("Zage");
 		break;
 	default:
 		return ("Unknown class");
@@ -1579,6 +1572,8 @@ void CGameContext::OnClientDrop(int ClientID, const char *pReason)
 	{
 		if (m_apPlayers[i] && m_apPlayers[i]->m_SpectatorID == ClientID)
 			m_apPlayers[i]->m_SpectatorID = SPEC_FREEVIEW;
+		if(m_apPlayers[i])
+			m_apPlayers[i]->BreakDisguise();
 	}
 	// InfClassR remove spectators
 	RemoveSpectatorCID(ClientID);
@@ -2153,11 +2148,6 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			Server()->SetClientCountry(ClientID, pMsg->m_Country);
 
 			// IP geolocation start
-#ifdef CONF_GEOLOCATION
-			std::string ip = Server()->GetClientIP(ClientID);
-			int LocatedCountry = Geolocation::get_country_iso_numeric_code(ip);
-			Server()->SetClientCountry(ClientID, LocatedCountry);
-#endif
 			// IP geolocation end
 
 			str_copy(pPlayer->m_TeeInfos.m_aCustomSkinName, pMsg->m_pSkin, sizeof(pPlayer->m_TeeInfos.m_aCustomSkinName));
@@ -3059,6 +3049,8 @@ bool CGameContext::ConSetClass(IConsole::IResult *pResult, void *pUserData)
 		pPlayer->SetClass(PLAYERCLASS_NIGHTMARE);
 	else if (str_comp(pClassName, "reaper") == 0)
 		pPlayer->SetClass(PLAYERCLASS_REAPER);
+	else if (str_comp(pClassName, "zage") == 0)
+		pPlayer->SetClass(PLAYERCLASS_ZAGE);
 	else if (str_comp(pClassName, "none") == 0)
 	{
 		pPlayer->SetClass(PLAYERCLASS_NONE);
@@ -4266,6 +4258,49 @@ bool CGameContext::ConTeleport(IConsole::IResult *pResult, void *pUserData)
 	return false;
 }
 
+bool CGameContext::ConFake(IConsole::IResult *pResult, void *pUserData)
+{
+	CGameContext *pSelf = (CGameContext *)pUserData;
+	int ClientID = pResult->GetClientID();
+	const char *pTarget = pResult->GetString(0);
+	if(!pSelf->GetPlayerChar(ClientID))
+		return true;
+	if(pSelf->m_apPlayers[ClientID]->GetClass() != PLAYERCLASS_ZAGE)
+	{
+		pSelf->SendChatTarget_Localization(ClientID, CHATCATEGORY_DEFAULT, _("You can't do this"));
+		return true;
+	}
+
+	if(!pTarget)
+	{
+		pSelf->SendChatTarget_Localization(ClientID, CHATCATEGORY_DEFAULT, _("You need to give the target"));
+		return true;
+	}
+	int TargetID = -1;
+	for(int i = 0; i < MAX_CLIENTS; i++)
+	{
+		if(!pSelf->m_apPlayers[i]) continue;
+		if(str_comp(pSelf->Server()->ClientName(i), pTarget) == 0) 
+		{
+			TargetID = i;
+			break;
+		}
+	}
+	if(TargetID == -1)
+	{
+		pSelf->SendChatTarget_Localization(ClientID, CHATCATEGORY_DEFAULT, _("Couldn't find this target"));
+		return true;
+	}
+	if(pSelf->m_apPlayers[TargetID]->IsZombie())
+	{
+		pSelf->SendChatTarget_Localization(ClientID, CHATCATEGORY_DEFAULT, _("That's a zombie..."));
+		return true;
+	}
+
+	pSelf->m_apPlayers[ClientID]->Disguise(TargetID);
+	return true;
+}
+
 void CGameContext::Teleport(CCharacter *pChr, vec2 Pos)
 {
 	pChr->SetPos(Pos);
@@ -4445,6 +4480,7 @@ void CGameContext::OnConsoleInit()
 	Console()->Register("language", "s<en|fr|nl|de|bg|sr-Latn|hr|cs|pl|uk|ru|el|la|it|es|pt|hu|ar|tr|sah|fa|tl|zh-Hans|ja>", CFGFLAG_CHAT | CFGFLAG_USER, ConLanguage, this, "Display information about the mod");
 	Console()->Register("cmdlist", "", CFGFLAG_CHAT | CFGFLAG_USER, ConCmdList, this, "List of commands");
 	Console()->Register("witch", "", CFGFLAG_CHAT | CFGFLAG_USER, ConWitch, this, "Call Witch");
+	Console()->Register("fake", "?s<target>", CFGFLAG_CHAT | CFGFLAG_USER, ConFake, this, "Zage fake");
 
 	Console()->Register("inf_set_weapon_attribute", "i<id> i<operation> ?i<value>", CFGFLAG_SERVER, ConSetWeaponAttribute, this, "Analogous to 'Say' but sent to a single client only");
 	/* INFECTION MODIFICATION END *****************************************/
@@ -4785,20 +4821,6 @@ bool CGameContext::IsSpectatorCID(int ClientID)
 
 void CGameContext::InitGeolocation()
 {
-#ifdef CONF_GEOLOCATION
-	const char aGeoDBFileName[] = "GeoLite2-Country.mmdb";
-	char aBuf[512];
-	Storage()->GetDataPath(aGeoDBFileName, aBuf, sizeof(aBuf));
-	if (aBuf[0])
-	{
-		Geolocation::Initialize(aBuf);
-	}
-	else
-	{
-		str_format(aBuf, sizeof(aBuf), "Unable to find geolocation data file %s", aGeoDBFileName);
-		Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
-	}
-#endif
 }
 
 void CGameContext::OnUpdatePlayerServerInfo(CJsonStringWriter *pJSonWriter, int Id)

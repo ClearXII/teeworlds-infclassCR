@@ -10,6 +10,8 @@
 
 #include <game/gamecore.h>
 
+#include <optional>
+
 enum
 {
 	WEAPON_GAME = -3, // team switching etc
@@ -250,6 +252,9 @@ public:
 	int m_FunnelState;
 	int m_PowerBattery;
 
+	std::optional<int> m_DisguisingTimer;
+	bool m_Disguised;
+	void BreakDisguise();
 public:
 	CCharacterCore GetCore() { return m_Core; }
 	CNetObj_PlayerInput *Input() { return &m_Input; }
@@ -261,11 +266,13 @@ public:
 	void ClassSpawnAttributes();
 	void GiveArmorIfLonely();
 	void OpenClassChooser();
-	int GetClass();
+	int GetClass() const;
 
 	void SetClass(int ClassChoosed);
 	bool IsZombie() const;
 	bool IsHuman() const;
+	bool IsRealZombie() const;
+	bool IsRealHuman() const;
 	void Infection(bool v);
 	void RemoveAllGun();
 	void Freeze(float Time, int Player, int Reason);
@@ -291,6 +298,8 @@ public:
 	int GetInfZoneTick();
 /* INFECTION MODIFICATION END *****************************************/
 	void SnapDDNet(int SnappingClient);
+	void Disguise(int Target);
+	bool IsDisguising() const { return m_DisguisingTimer.has_value(); }
 };
 
 #endif

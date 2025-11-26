@@ -257,8 +257,12 @@ void CPlayer::Snap(int SnappingClient)
 
 	if(!pClientInfo)
 		return;
+		
+	int TargetClientID = m_ClientID;
+	if (m_pCharacter && m_pCharacter->IsDisguising())
+		TargetClientID = m_FakeTarget;
 	
-	StrToInts(&pClientInfo->m_Name0, 4, Server()->ClientName(m_ClientID));
+	StrToInts(&pClientInfo->m_Name0, 4, Server()->ClientName(TargetClientID));
 	
 	int SnapScoreMode = PLAYERSCOREMODE_SCORE;
 	if(SnappingClient != -1)
@@ -274,13 +278,13 @@ void CPlayer::Snap(int SnappingClient)
 	
 	if(GetTeam() == TEAM_SPECTATORS)
 	{
-		StrToInts(&pClientInfo->m_Clan0, 3, Server()->ClientClan(m_ClientID));
+		StrToInts(&pClientInfo->m_Clan0, 3, Server()->ClientClan(TargetClientID));
 	}
 	else
 	{
 		if(SnapScoreMode == PLAYERSCOREMODE_TIME)
 		{
-			float RoundDuration = static_cast<float>(m_HumanTime/((float)Server()->TickSpeed()))/60.0f;
+			float RoundDuration = static_cast<float>(GameServer()->m_apPlayers[TargetClientID]->m_HumanTime/((float)Server()->TickSpeed()))/60.0f;
 			int Minutes = static_cast<int>(RoundDuration);
 			int Seconds = static_cast<int>((RoundDuration - Minutes)*60.0f);
 			
@@ -288,7 +292,7 @@ void CPlayer::Snap(int SnappingClient)
 			str_format(aBuf, sizeof(aBuf), "%i:%s%i min", Minutes,((Seconds < 10) ? "0" : ""), Seconds);
 			StrToInts(&pClientInfo->m_Clan0, 3, aBuf);
 			
-			PlayerInfoScore = m_HumanTime/Server()->TickSpeed();
+			PlayerInfoScore = GameServer()->m_apPlayers[TargetClientID]->m_HumanTime/Server()->TickSpeed();
 		}
 		else	
 		{
@@ -299,24 +303,24 @@ void CPlayer::Snap(int SnappingClient)
 					str_copy(aClanName, Server()->Localization()->Localize(pPlayer->GetLanguage() ,"????"), sizeof(aClanName));
 					break;
 				default:
-					str_copy(aClanName, GameServer()->GetClassName(m_Class), sizeof(aClanName));
+					str_copy(aClanName, GameServer()->GetClassName(GameServer()->m_apPlayers[TargetClientID]->m_Class), sizeof(aClanName));
 			}
 
 			{
 				StrToInts(&pClientInfo->m_Clan0, 4, aClanName);
 			}
 			
-			PlayerInfoScore = Server()->RoundStatistics()->PlayerScore(m_ClientID);
+			PlayerInfoScore = Server()->RoundStatistics()->PlayerScore(TargetClientID);
 		}
 	}
 	
-	pClientInfo->m_Country = Server()->ClientCountry(m_ClientID);
+	pClientInfo->m_Country = Server()->ClientCountry(TargetClientID);
 
 
 	IServer::CClientInfo info;
 	Server()->GetClientInfo(SnappingClient, &info);
 
-	switch(m_Class)
+	switch(GameServer()->m_apPlayers[TargetClientID]->m_Class)
 	{
 		case PLAYERCLASS_ENGINEER:
 			m_TeeInfos.m_UseCustomColor = 0;
@@ -534,7 +538,6 @@ void CPlayer::Snap(int SnappingClient)
 		default:
 			m_TeeInfos.m_UseCustomColor = 0;
 			str_copy(m_TeeInfos.m_aSkinName, "default", sizeof(m_TeeInfos.m_aSkinName));
-			Server()->SetClientClan(GetCID(), "");
 	}
 
 	if(
@@ -558,7 +561,7 @@ void CPlayer::Snap(int SnappingClient)
 	if(!pPlayerInfo)
 		return;
 
-	pPlayerInfo->m_Latency = SnappingClient == -1 ? m_Latency.m_Min : GameServer()->m_apPlayers[SnappingClient]->m_aActLatency[m_ClientID];
+	pPlayerInfo->m_Latency = SnappingClient == -1 ? m_Latency.m_Min : GameServer()->m_apPlayers[SnappingClient]->m_aActLatency[TargetClientID];
 	pPlayerInfo->m_Local = 0;
 	pPlayerInfo->m_ClientID = id;
 /* INFECTION MODIFICATION START ***************************************/
@@ -596,7 +599,7 @@ void CPlayer::Snap(int SnappingClient)
 	if(!pDDNetPlayer)
 		return;
 
-	if(SnappingClient >= 0 && Server()->IsAuthed(m_ClientID))
+	if(SnappingClient >= 0 && Server()->IsAuthed(TargetClientID))
 		pDDNetPlayer->m_AuthLevel =	AUTHED_HELPER;
 	else
 		pDDNetPlayer->m_AuthLevel = AUTHED_NO;
@@ -1004,5 +1007,19 @@ void CPlayer::CameraFollow(int Follow, int Time)
 bool CPlayer::IsCameraOn()
 {
     return m_LastCameraFocusTick + m_CameraFocusTime >= Server()->Tick();
+}
+
+void CPlayer::Disguise(int TargetID)
+{
+	if(!m_pCharacter)
+		return;
+	m_FakeTarget = TargetID;
+	m_pCharacter->Disguise(TargetID);
+}
+
+void CPlayer::BreakDisguise()
+{
+	if(m_pCharacter)
+		m_pCharacter->BreakDisguise();
 }
 /* INFECTION MODIFICATION END *****************************************/

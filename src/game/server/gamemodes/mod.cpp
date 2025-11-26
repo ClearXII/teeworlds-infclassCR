@@ -483,7 +483,7 @@ void CGameControllerMOD::Tick()
 			GameServer()->SendChatTarget_Localization(-1, CHATCATEGORY_INFECTED, _("Please wait until more players have joined the game"), NULL);
 			
 			char aBuf[512];
-			str_format(aBuf, sizeof(aBuf), "round_end too few players round='%d of %d'", m_RoundCount+1, g_Config.m_SvRoundsPerMap);
+			str_format(aBuf, sizeof(aBuf), "round_end too few players, need %d, but only %d, round='%d of %d'", g_Config.m_InfMinPlayers, GameServer()->GetActivePlayerCount(), m_RoundCount+1, g_Config.m_SvRoundsPerMap);
 			GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
 			 
 			EndRound(WINNER_NONE);
@@ -656,7 +656,7 @@ int CGameControllerMOD::OnCharacterDeath(class CCharacter *pVictim, class CPlaye
 		CPlayer* pVictimPlayer = pVictim->GetPlayer();
 		if(pVictimPlayer)
 		{
-			if(pVictim->IsHuman())
+			if(pVictim->IsRealHuman())
 			{
 				GameServer()->SendChatTarget_Localization(pKiller->GetCID(), CHATCATEGORY_SCORE, _("You have infected {str:VictimName}, +3 points"), "VictimName", Server()->ClientName(pVictimPlayer->GetCID()), NULL);
 				Server()->RoundStatistics()->OnScoreEvent(pKiller->GetCID(), SCOREEVENT_INFECTION, pKiller->GetClass(), Server()->ClientName(pKiller->GetCID()), GameServer()->Console());
@@ -698,7 +698,13 @@ int CGameControllerMOD::OnCharacterDeath(class CCharacter *pVictim, class CPlaye
 				Server()->RoundStatistics()->OnScoreEvent(pKiller->GetCID(), SCOREEVENT_KILL_FREEZER, pKiller->GetClass(), Server()->ClientName(pKiller->GetCID()), GameServer()->Console());
 				GameServer()->SendScoreSound(pKiller->GetCID());
 			}
-			else if(pVictim->IsZombie())
+			else if(pVictim->GetClass() == PLAYERCLASS_ZAGE)
+			{
+				GameServer()->SendChatTarget_Localization(pKiller->GetCID(), CHATCATEGORY_SCORE, _("You have killed a zage, +3 points"), NULL);
+				Server()->RoundStatistics()->OnScoreEvent(pKiller->GetCID(), SCOREEVENT_KILL_FREEZER, pKiller->GetClass(), Server()->ClientName(pKiller->GetCID()), GameServer()->Console());
+				GameServer()->SendScoreSound(pKiller->GetCID());
+			}
+			else if(pVictim->IsRealZombie())
 			{
 				Server()->RoundStatistics()->OnScoreEvent(pKiller->GetCID(), SCOREEVENT_KILL_INFECTED, pKiller->GetClass(), Server()->ClientName(pKiller->GetCID()), GameServer()->Console());
 				GameServer()->SendScoreSound(pKiller->GetCID());
@@ -730,7 +736,7 @@ int CGameControllerMOD::OnCharacterDeath(class CCharacter *pVictim, class CPlaye
 	}
 	
 	//Add killing num for freezer
-	if(pVictim->IsHuman() && pVictim->IsFrozen() && pVictim->m_LastFreezer >= 0 && pVictim->m_LastFreezer != pKiller->GetCID())
+	if(pVictim->IsRealHuman() && pVictim->IsFrozen() && pVictim->m_LastFreezer >= 0 && pVictim->m_LastFreezer != pKiller->GetCID())
 	{
 		CPlayer* pFreezer = GameServer()->m_apPlayers[pVictim->m_LastFreezer];
 		if(pFreezer)
@@ -751,7 +757,7 @@ int CGameControllerMOD::OnCharacterDeath(class CCharacter *pVictim, class CPlaye
 	}
 
 	//Add bonus point for ninja
-	if(pVictim->IsZombie() && pVictim->IsFrozen() && pVictim->m_LastFreezer >= 0 && pVictim->m_LastFreezer != pKiller->GetCID())
+	if(pVictim->IsRealZombie() && pVictim->IsFrozen() && pVictim->m_LastFreezer >= 0 && pVictim->m_LastFreezer != pKiller->GetCID())
 	{
 		CPlayer* pFreezer = GameServer()->m_apPlayers[pVictim->m_LastFreezer];
 		if(pFreezer)
@@ -780,7 +786,7 @@ int CGameControllerMOD::OnCharacterDeath(class CCharacter *pVictim, class CPlaye
 	}
 	
 	//Add kiiling num for reviver
-	if(pVictim->IsZombie() && pVictim->IsFrozen() && pVictim->m_LastFreezer >= 0 && pVictim->m_LastFreezer != pKiller->GetCID())
+	if(pVictim->IsRealZombie() && pVictim->IsFrozen() && pVictim->m_LastFreezer >= 0 && pVictim->m_LastFreezer != pKiller->GetCID())
 	{
 		CPlayer* pFreezer = GameServer()->m_apPlayers[pVictim->m_LastFreezer];
 		if(pFreezer)
@@ -1070,6 +1076,7 @@ int CGameControllerMOD::ChooseInfectedClass(const CPlayer *pPlayer) const
 	bool thereIsAnUndead = false;
 	bool thereIsAFreezer = false;
 	bool thereIsAReaper = false;
+	bool thereIsAZage = false;
 
 	CPlayerIterator<PLAYERITER_INGAME> Iter(GameServer()->m_apPlayers);
 	while(Iter.Next())
@@ -1079,6 +1086,7 @@ int CGameControllerMOD::ChooseInfectedClass(const CPlayer *pPlayer) const
 		if(Iter.Player()->GetClass() == PLAYERCLASS_UNDEAD) thereIsAnUndead = true;
 		if(Iter.Player()->GetClass() == PLAYERCLASS_FREEZER) thereIsAFreezer = true;
 		if(Iter.Player()->GetClass() == PLAYERCLASS_REAPER) thereIsAReaper = true;
+		if(Iter.Player()->GetClass() == PLAYERCLASS_ZAGE) thereIsAZage = true;
 	}
 	
 	if(GameServer()->m_FunRound)
@@ -1089,6 +1097,8 @@ int CGameControllerMOD::ChooseInfectedClass(const CPlayer *pPlayer) const
 			return PLAYERCLASS_WITCH;
 		else if(random_int(0, 100) <= g_Config.m_FunRoundFreezerProba && !thereIsAFreezer)
 			return PLAYERCLASS_FREEZER;
+		else if(random_int(0, 100) <= g_Config.m_FunRoundZageProba && !thereIsAZage)
+			return PLAYERCLASS_ZAGE;
 		else 
 			return GameServer()->m_FunRoundZombieClass;
 	}
@@ -1144,6 +1154,9 @@ int CGameControllerMOD::ChooseInfectedClass(const CPlayer *pPlayer) const
 		(double) g_Config.m_InfProbaFreezer : 0.0f;
 	Probability[PLAYERCLASS_REAPER - START_INFECTEDCLASS - 1] =
 		0.0f;
+	Probability[PLAYERCLASS_ZAGE - START_INFECTEDCLASS - 1] =
+		(Server()->GetClassAvailability(PLAYERCLASS_ZAGE) && nbInfected > 5 && !thereIsAZage) ?
+		(double) g_Config.m_InfProbaZage : 0.0f;
 
 	int Seconds = (Server()->Tick()-m_RoundStartTick)/((float)Server()->TickSpeed());
 	char aBuf[256];

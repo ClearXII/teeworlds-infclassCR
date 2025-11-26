@@ -109,6 +109,7 @@ class CGameContext : public IGameServer
 	static bool ConStartBossRound(IConsole::IResult *pResult, void *pUserData);
 	static bool ConchainSpecialMotdupdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	static bool ConTeleport(IConsole::IResult *pResult, void *pUserData);
+	static bool ConFake(IConsole::IResult *pResult, void *pUserData);
 
 
 	CGameContext(int Resetting);
