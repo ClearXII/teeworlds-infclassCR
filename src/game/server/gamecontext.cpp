@@ -1572,7 +1572,7 @@ void CGameContext::OnClientDrop(int ClientID, const char *pReason)
 	{
 		if (m_apPlayers[i] && m_apPlayers[i]->m_SpectatorID == ClientID)
 			m_apPlayers[i]->m_SpectatorID = SPEC_FREEVIEW;
-		if(m_apPlayers[i])
+		if(m_apPlayers[i] && m_apPlayers[i]->m_FakeTarget == ClientID)
 			m_apPlayers[i]->BreakDisguise();
 	}
 	// InfClassR remove spectators
