@@ -66,6 +66,7 @@ MACRO_CONFIG_INT(InfBatHookTime, inf_bat_hook_time, 5, 1, 10000, CFGFLAG_SERVER,
 MACRO_CONFIG_INT(InfSpiderHookTime, inf_spider_hook_time, 3, 1, 10000, CFGFLAG_SERVER, "For how long spiders will be able to hook humans (in seconds)")
 MACRO_CONFIG_INT(InfSpiderDamage, inf_spider_damage, 10, 1, 10000, CFGFLAG_SERVER, "Damage taken by spider")
 MACRO_CONFIG_INT(InfSlimeDamage, inf_slime_damage, 2, 1, 10000, CFGFLAG_SERVER, "Damage taken by slime")
+MACRO_CONFIG_INT(InfZageDamage, inf_zage_damage, 5, 1, 10000, CFGFLAG_SERVER, "Damage taken by zage")
 MACRO_CONFIG_INT(InfSpiderHookDamage, inf_spider_hook_damage, 1, 0, 10000, CFGFLAG_SERVER, "Damage taken by spider (hook)")
 MACRO_CONFIG_INT(InfSmokerHookDamage, inf_smoker_hook_damage, 3, 1, 10000, CFGFLAG_SERVER, "Damage taken by smoker (hook)")
 MACRO_CONFIG_INT(InfNightmareHookDamage, inf_nightmare_hook_damage, 2, 1, 10000, CFGFLAG_SERVER, "Damage taken by smoker (hook)")
