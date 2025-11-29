@@ -36,7 +36,7 @@ MACRO_CONFIG_INT(InfReviverLimit, inf_reviver_limit, 1, 0, 4, CFGFLAG_SERVER, "M
 MACRO_CONFIG_INT(InfDoctorLimit1, inf_doctor_limit_1, 1, 0, 4, CFGFLAG_SERVER, "Maximum number of doctors in game")
 MACRO_CONFIG_INT(InfDoctorLimit2, inf_doctor_limit_2, 2, 0, 4, CFGFLAG_SERVER, "Maximum number of doctors in game")
 
-MACRO_CONFIG_INT(InfSoldierBombs, inf_soldier_bombs, 3, 1, 16, CFGFLAG_SERVER, "Number of bombs for the soldier")
+MACRO_CONFIG_INT(InfSoldierBombs, inf_soldier_bombs, 3, 1, 128, CFGFLAG_SERVER, "Number of bombs for the soldier")
 MACRO_CONFIG_INT(InfMercBombs, inf_merc_bombs, 15, 1, 100, CFGFLAG_SERVER, "Number of poison grenades for the mercenary")
 MACRO_CONFIG_INT(InfMercLove, inf_merc_love, 1, 0, 1, CFGFLAG_SERVER, "Enables love bombs for the mercenary (hammer)")
 MACRO_CONFIG_INT(InfBarrierLifeSpan, inf_barrier_lifespan, 30, 0, 100, CFGFLAG_SERVER, "Barrier lifespan")
@@ -125,7 +125,7 @@ MACRO_CONFIG_INT(FunRoundFreezerProba, funround_freezer_proba, 5, 0, 100, CFGFLA
 MACRO_CONFIG_INT(FunRoundZageProba, funround_zage_proba, 2, 0, 100, CFGFLAG_SERVER, "Fun round zage proba")
 MACRO_CONFIG_INT(FunRoundProba, funround_proba, 6, 0, 1000, CFGFLAG_SERVER, "Fun round proba(‰)")
 // class config
-MACRO_CONFIG_INT(InfFreezerReslowlyTime, inf_freezer_reslowly_time, 200, 0, 1000, CFGFLAG_SERVER, "tick")
+MACRO_CONFIG_INT(InfFreezerReslowlyTime, inf_freezer_reslowly_time, 200, 0, 100000, CFGFLAG_SERVER, "tick")
 MACRO_CONFIG_INT(InfMagicianMagicTick, inf_magician_magic_tick, 250, 0, 1000, CFGFLAG_SERVER, "tick")
 
 MACRO_CONFIG_INT(InfDisguiseTimer, inf_disguise_time, 30, 10, 1000, CFGFLAG_SERVER, "Zage disguise time in seconds")
@@ -154,7 +154,7 @@ MACRO_CONFIG_INT(InfPlasmaPlusSpeed, inf_plasma_plus_speed, 16, 0, 20, CFGFLAG_S
 
 MACRO_CONFIG_INT(InfDoctorGrenadeLifeSpan, inf_doctor_grenade_life_span, 2, 0, 100, CFGFLAG_SERVER, "Doctor grenade life span")
 MACRO_CONFIG_INT(InfDoctorFunnelDamage, inf_doctor_funnel_damage, 1, -100, 100, CFGFLAG_SERVER, "Damage of funnel laser")
-MACRO_CONFIG_INT(InfDoctorMaxPowerBattery, inf_doctor_max_power_battery, 1500, -1, 10000, CFGFLAG_SERVER, "Max power battery of funnel(50 = 1s)")
+MACRO_CONFIG_INT(InfDoctorMaxPowerBattery, inf_doctor_max_power_battery, 1500, -1, 1000000, CFGFLAG_SERVER, "Max power battery of funnel(50 = 1s)")
 
 //Looper class config
 MACRO_CONFIG_INT(InfSlowMotionWallDuration, inf_slow_motion_wall_duration, 30, 0, 1024, CFGFLAG_SERVER, "How long looper wall slow motion effect will slow down zombies (in centiSec)")
@@ -228,6 +228,7 @@ MACRO_CONFIG_INT(InfPoliceShieldHealth, inf_police_shield_health, 50, 0, 10000, 
 MACRO_CONFIG_INT(InfBoomerExplodeRadius, inf_boomer_explode_radius, 80, 0, 8000, CFGFLAG_SERVER, "the radius of boomer explode")
 MACRO_CONFIG_INT(InfSlugHealth, inf_Slug_health, 10, 0, 10000, CFGFLAG_SERVER, "the health of slug")
 MACRO_CONFIG_INT(InfHunterSpeed, inf_hunter_speed, 0, 0, 1000, CFGFLAG_SERVER, "the speed increase of hunter")//指的是比默认快多少%
+MACRO_CONFIG_INT(InfBoomerDecreaseSpeed, inf_boomer_decrease_speed, 0, 0, 100, CFGFLAG_SERVER, "the speed decrease of boomer")
 MACRO_CONFIG_INT(InfUndeadFreeze, inf_undead_freeze, 0, 0, 100, CFGFLAG_SERVER, "the freeze time of undead")
 MACRO_CONFIG_INT(InfWitchResistance, inf_witch_resistance, 0, 0, 100, CFGFLAG_SERVER, "the damage resistance of witch")
 MACRO_CONFIG_INT(InfNightmareEffectTime, inf_nightmare_effect_time, 30, 0, 9000, CFGFLAG_SERVER, "the blinding time of nightmare appear(10 = 1s)")

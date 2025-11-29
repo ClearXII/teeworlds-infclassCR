@@ -638,6 +638,19 @@ void CCharacter::UpdateTuningParam()
 		pTuningParams->m_HookDragSpeed = pTuningParams->m_HookDragSpeed * (1.0f + Factor);
 	}
 
+	if (GetClass() == PLAYERCLASS_BOOMER)
+	{
+		float Factor = g_Config.m_InfHunterSpeed * 0.01f;
+		pTuningParams->m_GroundControlSpeed = pTuningParams->m_GroundControlSpeed * (1.0f - Factor);
+		pTuningParams->m_GroundControlAccel = pTuningParams->m_GroundControlAccel * (1.0f - Factor);
+		pTuningParams->m_GroundJumpImpulse = pTuningParams->m_GroundJumpImpulse * (1.0f - Factor);
+		pTuningParams->m_AirJumpImpulse = pTuningParams->m_AirJumpImpulse * (1.0f - Factor);
+		pTuningParams->m_AirControlSpeed = pTuningParams->m_AirControlSpeed * (1.0f - Factor);
+		pTuningParams->m_AirControlAccel = pTuningParams->m_AirControlAccel * (1.0f - Factor);
+		pTuningParams->m_HookDragAccel = pTuningParams->m_HookDragAccel * (1.0f - Factor);
+		pTuningParams->m_HookDragSpeed = pTuningParams->m_HookDragSpeed * (1.0f - Factor);
+	}
+
 	if (GetClass() == PLAYERCLASS_MAGICIAN && m_IsMagic)
 	{
 		float Factor = 0.75f;
