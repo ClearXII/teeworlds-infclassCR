@@ -725,6 +725,7 @@ int CServer::Init()
 	SetClassAvailability(PLAYERCLASS_SLIME, 1);
 	SetClassAvailability(PLAYERCLASS_FREEZER, 1);
 	SetClassAvailability(PLAYERCLASS_NIGHTMARE, 1);
+	SetClassAvailability(PLAYERCLASS_ZAGE, 1);
 	
 	m_InfClassChooser = 1;
 /* INFECTION MODIFICATION END *****************************************/
