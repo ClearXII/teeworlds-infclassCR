@@ -90,7 +90,7 @@ MACRO_CONFIG_INT(InfProbaFreezer, inf_proba_freezer, 5, 0, 100, CFGFLAG_SERVER, 
 MACRO_CONFIG_INT(InfProbaUndead, inf_proba_undead, 6, 0, 100, CFGFLAG_SERVER, "Probability for an infected to be an undead")
 MACRO_CONFIG_INT(InfProbaNightmare, inf_proba_nightmare, 2, 0, 100, CFGFLAG_SERVER, "Probability for an infected to be a nightmare")
 //Slime
-MACRO_CONFIG_INT(InfSlimeReloadTime, inf_slime_reload_time, 180, 0, 60, CFGFLAG_SERVER, "Slime reload time")
+MACRO_CONFIG_INT(InfSlimeReloadTime, inf_slime_reload_time, 180, 0, 600, CFGFLAG_SERVER, "Slime reload time")
 
 MACRO_CONFIG_INT(InfEnableEngineer, inf_enable_engineer, 1, 0, 1, CFGFLAG_SERVER, "Makes the engineer class available")
 MACRO_CONFIG_INT(InfEnableSoldier, inf_enable_soldier, 1, 0, 1, CFGFLAG_SERVER, "Makes the soldier class available")
@@ -229,7 +229,7 @@ MACRO_CONFIG_INT(InfBoomerExplodeRadius, inf_boomer_explode_radius, 80, 0, 8000,
 MACRO_CONFIG_INT(InfSlugHealth, inf_Slug_health, 10, 0, 10000, CFGFLAG_SERVER, "the health of slug")
 MACRO_CONFIG_INT(InfHunterSpeed, inf_hunter_speed, 0, 0, 1000, CFGFLAG_SERVER, "the speed increase of hunter")//指的是比默认快多少%
 MACRO_CONFIG_INT(InfBoomerDecreaseSpeed, inf_boomer_decrease_speed, 0, 0, 100, CFGFLAG_SERVER, "the speed decrease of boomer")
-MACRO_CONFIG_INT(InfUndeadFreeze, inf_undead_freeze, 0, 10, 100, CFGFLAG_SERVER, "the freeze time of undead")
+MACRO_CONFIG_INT(InfUndeadFreeze, inf_undead_freeze, 10, 0, 100, CFGFLAG_SERVER, "the freeze time of undead")
 MACRO_CONFIG_INT(InfWitchResistance, inf_witch_resistance, 0, 0, 100, CFGFLAG_SERVER, "the damage resistance of witch")
 MACRO_CONFIG_INT(InfNightmareEffectTime, inf_nightmare_effect_time, 30, 0, 9000, CFGFLAG_SERVER, "the blinding time of nightmare appear(10 = 1s)")
 MACRO_CONFIG_INT(InfNightmareAppearDamage, inf_nightmare_appear_damage, 2, 0, 100, CFGFLAG_SERVER, "the damage of nightmare appear")
