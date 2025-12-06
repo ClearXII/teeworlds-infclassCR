@@ -640,7 +640,7 @@ void CCharacter::UpdateTuningParam()
 
 	if (GetClass() == PLAYERCLASS_BOOMER)
 	{
-		float Factor = g_Config.m_InfHunterSpeed * 0.01f;
+		float Factor = g_Config.m_InfBoomerDecreaseSpeed * 0.01f;
 		pTuningParams->m_GroundControlSpeed = pTuningParams->m_GroundControlSpeed * (1.0f - Factor);
 		pTuningParams->m_GroundControlAccel = pTuningParams->m_GroundControlAccel * (1.0f - Factor);
 		pTuningParams->m_GroundJumpImpulse = pTuningParams->m_GroundJumpImpulse * (1.0f - Factor);
