@@ -4669,7 +4669,7 @@ void CCharacter::ClassSpawnAttributes()
 	case PLAYERCLASS_HERO:
 		RemoveAllGun();
 		m_pPlayer->m_InfectionTick = -1;
-		m_Health = 10;
+		m_Health = g_Config.m_InfHeroHealth;
 		m_aWeapons[WEAPON_HAMMER].m_Got = false;
 		GiveWeapon(WEAPON_GUN, -1);
 		GiveWeapon(WEAPON_SHOTGUN, -1);
