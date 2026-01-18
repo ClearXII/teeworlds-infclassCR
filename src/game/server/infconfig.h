@@ -67,6 +67,7 @@ MACRO_CONFIG_INT(InfSpiderHookTime, inf_spider_hook_time, 3, 1, 10000, CFGFLAG_S
 MACRO_CONFIG_INT(InfSpiderDamage, inf_spider_damage, 10, 1, 10000, CFGFLAG_SERVER, "Damage taken by spider")
 MACRO_CONFIG_INT(InfSlimeDamage, inf_slime_damage, 2, 1, 10000, CFGFLAG_SERVER, "Damage taken by slime")
 MACRO_CONFIG_INT(InfZageDamage, inf_zage_damage, 5, 1, 10000, CFGFLAG_SERVER, "Damage taken by zage")
+MACRO_CONFIG_INT(InfNightmareDamage, inf_nightmare_damage, 5, 0, 10000, CFGFLAG_SERVER, "Damage taken by nightmare")
 MACRO_CONFIG_INT(InfSpiderHookDamage, inf_spider_hook_damage, 1, 0, 10000, CFGFLAG_SERVER, "Damage taken by spider (hook)")
 MACRO_CONFIG_INT(InfSmokerHookDamage, inf_smoker_hook_damage, 3, 1, 10000, CFGFLAG_SERVER, "Damage taken by smoker (hook)")
 MACRO_CONFIG_INT(InfNightmareHookDamage, inf_nightmare_hook_damage, 2, 1, 10000, CFGFLAG_SERVER, "Damage taken by smoker (hook)")
@@ -231,8 +232,8 @@ MACRO_CONFIG_INT(InfHunterSpeed, inf_hunter_speed, 0, 0, 1000, CFGFLAG_SERVER, "
 MACRO_CONFIG_INT(InfBoomerDecreaseSpeed, inf_boomer_decrease_speed, 0, 0, 100, CFGFLAG_SERVER, "the speed decrease of boomer")
 MACRO_CONFIG_INT(InfUndeadFreeze, inf_undead_freeze, 10, 0, 100, CFGFLAG_SERVER, "the freeze time of undead")
 MACRO_CONFIG_INT(InfWitchResistance, inf_witch_resistance, 0, 0, 100, CFGFLAG_SERVER, "the damage resistance of witch")
-MACRO_CONFIG_INT(InfNightmareEffectTime, inf_nightmare_effect_time, 30, 0, 9000, CFGFLAG_SERVER, "the blinding time of nightmare appear(10 = 1s)")
-MACRO_CONFIG_INT(InfNightmareAppearDamage, inf_nightmare_appear_damage, 2, 0, 100, CFGFLAG_SERVER, "the damage of nightmare appear")
+MACRO_CONFIG_INT(InfNightmareEffectTime, inf_nightmare_effect_time, 20, 0, 9000, CFGFLAG_SERVER, "the blinding time of nightmare appear(10 = 1s)")
+MACRO_CONFIG_INT(InfNightmareAppearDamage, inf_nightmare_appear_damage, 1, 0, 100, CFGFLAG_SERVER, "the damage of nightmare appear")
 MACRO_CONFIG_INT(InfHeroHealth, inf_hero_health, 10, 0, 10000, CFGFLAG_SERVER, "the health of hero")
 MACRO_CONFIG_INT(InfHeroDecreaseSpeed, inf_hero_decrease_speed, 0, 0, 100, CFGFLAG_SERVER, "the speed decrease of hero")
 #endif

@@ -1220,6 +1220,11 @@ void CCharacter::FireWeapon()
 							pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, g_Config.m_InfZageDamage,
 												m_pPlayer->GetCID(), m_ActiveWeapon, TAKEDAMAGEMODE_NOINFECTION);
 						}
+						else if (GetClass() == PLAYERCLASS_NIGHTMARE)
+						{
+							pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, g_Config.m_InfNightmareDamage,
+												m_pPlayer->GetCID(), m_ActiveWeapon, TAKEDAMAGEMODE_NOINFECTION);
+						}
 						else if (GetClass() == PLAYERCLASS_REAPER)
 						{
 							pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, 30,
