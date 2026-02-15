@@ -236,4 +236,5 @@ MACRO_CONFIG_INT(InfNightmareEffectTime, inf_nightmare_effect_time, 20, 0, 9000,
 MACRO_CONFIG_INT(InfNightmareAppearDamage, inf_nightmare_appear_damage, 1, 0, 100, CFGFLAG_SERVER, "the damage of nightmare appear")
 MACRO_CONFIG_INT(InfHeroHealth, inf_hero_health, 10, 0, 10000, CFGFLAG_SERVER, "the health of hero")
 MACRO_CONFIG_INT(InfHeroDecreaseSpeed, inf_hero_decrease_speed, 0, 0, 100, CFGFLAG_SERVER, "the speed decrease of hero")
+MACRO_CONFIG_INT(InfWhiteSniper, inf_white_sniper, 0, 0, 1, CFGFLAG_SERVER, "make sniper become white")
 #endif

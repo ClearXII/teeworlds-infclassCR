@@ -331,8 +331,18 @@ void CPlayer::Snap(int SnappingClient)
 			str_copy(m_TeeInfos.m_aSkinName, "brownbear", sizeof(m_TeeInfos.m_aSkinName));
 			break;
 		case PLAYERCLASS_SNIPER:
-			m_TeeInfos.m_UseCustomColor = 0;
-			str_copy(m_TeeInfos.m_aSkinName, "warpaint", sizeof(m_TeeInfos.m_aSkinName));
+			if(g_Config.m_InfWhiteSniper == 1)
+			{
+				m_TeeInfos.m_UseCustomColor = 1;
+				m_TeeInfos.m_ColorBody = 255;
+				m_TeeInfos.m_ColorFeet = 255;
+				str_copy(m_TeeInfos.m_aSkinName, "warpaint", sizeof(m_TeeInfos.m_aSkinName));
+			}
+			else
+			{
+				m_TeeInfos.m_UseCustomColor = 0;
+				str_copy(m_TeeInfos.m_aSkinName, "warpaint", sizeof(m_TeeInfos.m_aSkinName));
+			}
 			break;
 		case PLAYERCLASS_MERCENARY:
 			m_TeeInfos.m_UseCustomColor = 0;
