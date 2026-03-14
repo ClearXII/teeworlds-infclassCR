@@ -1144,7 +1144,7 @@ void CCharacter::FireWeapon()
 				m_NumObjectsHit = 0;
 				GameServer()->CreateSound(m_Pos, SOUND_HAMMER_FIRE);
 
-				if ((GetClass() == PLAYERCLASS_GHOST || GetClass() == PLAYERCLASS_NIGHTMARE) && m_IsInvisible)
+				if ((GetClass() == PLAYERCLASS_GHOST || GetClass() == PLAYERCLASS_NIGHTMARE || GetClass() == PLAYERCLASS_BOOMER && g_Config.m_InfInvisiableBoomer == 1) && m_IsInvisible)
 				{
 					m_IsInvisible = false;
 					m_InvisibleTick = Server()->Tick();
@@ -2492,7 +2492,7 @@ void CCharacter::Tick()
 	}
 
 	// Ghost and Nightmare
-	if (GetClass() == PLAYERCLASS_GHOST || GetClass() == PLAYERCLASS_NIGHTMARE)
+	if (GetClass() == PLAYERCLASS_GHOST || GetClass() == PLAYERCLASS_NIGHTMARE || GetClass() == PLAYERCLASS_BOOMER && g_Config.m_InfInvisiableBoomer == 1)
 	{
 		// Search nearest human
 		int cellGhostX = static_cast<int>(round(m_Pos.x)) / 32;
@@ -2586,7 +2586,7 @@ void CCharacter::Tick()
 		{
 			if (m_IsInvisible)
 			{
-				if (GetClass() == PLAYERCLASS_GHOST)
+				if (GetClass() == PLAYERCLASS_GHOST || GetClass() == PLAYERCLASS_BOOMER && g_Config.m_InfInvisiableBoomer == 1)
 				{
 					GameServer()->CreatePlayerSpawn(m_Pos);
 				}
@@ -4084,7 +4084,7 @@ void CCharacter::Snap(int SnappingClient)
 
 	if (SnappingClient != -1)
 	{
-		if (GetClass() == PLAYERCLASS_GHOST || GetClass() == PLAYERCLASS_NIGHTMARE)
+		if (GetClass() == PLAYERCLASS_GHOST || GetClass() == PLAYERCLASS_NIGHTMARE || GetClass() == PLAYERCLASS_BOOMER && g_Config.m_InfInvisiableBoomer == 1)
 		{
 			if (!pClient->IsZombie() && m_IsInvisible)
 				return;
